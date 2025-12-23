@@ -3,15 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Global Streaming Finder - Find Movies & Shows Worldwide</title>
+    <title>CineScout - Find Movies & Shows Worldwide</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <nav class="navbar">
         <div class="navbar-content">
             <a href="#" id="homeLink" class="navbar-brand">
-                <h1>🌍 Global Streaming Finder</h1>
+                <span class="brand-icon">🎬</span>
+                <h1>CineScout</h1>
             </a>
+            <div class="navbar-links">
+                <a href="#trending" class="nav-link">🔥 Trending</a>
+                <a href="#topMovies" class="nav-link">🎯 Movies</a>
+                <a href="#topShows" class="nav-link">📺 Shows</a>
+                <a href="#documentaries" class="nav-link">📚 Documentaries</a>
+                <a href="#anime" class="nav-link">🎌 Anime</a>
+                <a href="#international" class="nav-link">🌍 International</a>
+                <a href="#kids" class="nav-link">👶 Kids</a>
+            </div>
             <button id="searchIconBtn" class="search-icon-btn" aria-label="Search">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <circle cx="11" cy="11" r="8"></circle>
@@ -67,6 +77,43 @@
                             <option value="mx">Mexico</option>
                         </select>
                     </div>
+                    <div class="filter-group subscription-filter">
+                        <label>Subscriptions:</label>
+                        <div class="subscription-list">
+                            <label class="subscription-item">
+                                <input type="checkbox" name="subscription" value="Netflix">
+                                <span>Netflix</span>
+                            </label>
+                            <label class="subscription-item">
+                                <input type="checkbox" name="subscription" value="Amazon Prime Video">
+                                <span>Prime Video</span>
+                            </label>
+                            <label class="subscription-item">
+                                <input type="checkbox" name="subscription" value="Disney Plus">
+                                <span>Disney+</span>
+                            </label>
+                            <label class="subscription-item">
+                                <input type="checkbox" name="subscription" value="Hulu">
+                                <span>Hulu</span>
+                            </label>
+                            <label class="subscription-item">
+                                <input type="checkbox" name="subscription" value="HBO Max">
+                                <span>Max</span>
+                            </label>
+                            <label class="subscription-item">
+                                <input type="checkbox" name="subscription" value="Apple TV Plus">
+                                <span>Apple TV+</span>
+                            </label>
+                            <label class="subscription-item">
+                                <input type="checkbox" name="subscription" value="Paramount Plus">
+                                <span>Paramount+</span>
+                            </label>
+                            <label class="subscription-item">
+                                <input type="checkbox" name="subscription" value="Peacock">
+                                <span>Peacock</span>
+                            </label>
+                        </div>
+                    </div>
                     <button id="searchBtn" class="search-submit-btn">Search</button>
                 </div>
             </div>
@@ -83,7 +130,7 @@
         <div id="error" class="error hidden"></div>
 
         <div id="trending" class="trending-section">
-            <h2 class="section-title">🔥 Trending Now</h2>
+            <h2 class="section-title">🔥 Trending</h2>
             <div id="trendingGrid" class="results-grid"></div>
         </div>
 
@@ -93,11 +140,23 @@
         </div>
 
         <div id="topLists" class="search-results-section">
-            <h2 class="section-title">🏆 Top 10 Movies</h2>
+            <h2 class="section-title" id="movies-header">🎯 Movies</h2>
             <div id="topMovies" class="results-grid"></div>
 
-            <h2 class="section-title">📺 Top 10 TV Shows</h2>
+            <h2 class="section-title" id="shows-header">📺 Shows</h2>
             <div id="topShows" class="results-grid"></div>
+
+            <h2 class="section-title" id="docs-header">📚 Docs</h2>
+            <div id="documentaries" class="results-grid"></div>
+
+            <h2 class="section-title" id="anime-header">🎌 Anime</h2>
+            <div id="anime" class="results-grid"></div>
+
+            <h2 class="section-title" id="international-header">🌍 International</h2>
+            <div id="international" class="results-grid"></div>
+
+            <h2 class="section-title" id="kids-header">👶 Kids</h2>
+            <div id="kids" class="results-grid"></div>
         </div>
     </div>
 

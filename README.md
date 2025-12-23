@@ -1,4 +1,4 @@
-# 🌍 Global Streaming Finder
+# CineScout
 
 A web application that helps you find where to watch movies and TV shows across different streaming platforms worldwide. Perfect for VPN users who want to access content available in different regions!
 
