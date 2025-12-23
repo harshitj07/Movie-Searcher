@@ -7,47 +7,73 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1>🌍 Global Streaming Finder</h1>
-            <p class="subtitle">Find where to watch any movie or show around the world</p>
-        </header>
+    <nav class="navbar">
+        <div class="navbar-content">
+            <a href="#" id="homeLink" class="navbar-brand">
+                <h1>🌍 Global Streaming Finder</h1>
+            </a>
+            <button id="searchIconBtn" class="search-icon-btn" aria-label="Search">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <path d="m21 21-4.35-4.35"></path>
+                </svg>
+                <span>Search</span>
+            </button>
+        </div>
+    </nav>
 
-        <div class="search-section">
-            <div class="search-container">
-                <input 
-                    type="text" 
-                    id="searchInput" 
-                    placeholder="Search for movies, TV shows..." 
-                    autocomplete="off"
-                >
-                <button id="searchBtn">Search</button>
+    <!-- Fullscreen search overlay -->
+    <div id="searchOverlay" class="search-overlay hidden">
+        <div class="search-overlay-content">
+            <div class="search-overlay-header">
+                <button id="closeSearchBtn" class="close-search-btn" aria-label="Close search">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
             </div>
-            
-            <div class="filters">
-                <label for="mediaType">Type:</label>
-                <select id="mediaType">
-                    <option value="all">All</option>
-                    <option value="movie">Movies</option>
-                    <option value="tv">TV Shows</option>
-                </select>
-                
-                <label for="countryFilter">Country:</label>
-                <select id="countryFilter">
-                    <option value="">All Countries</option>
-                    <option value="us">United States</option>
-                    <option value="ca">Canada</option>
-                    <option value="gb">United Kingdom</option>
-                    <option value="au">Australia</option>
-                    <option value="de">Germany</option>
-                    <option value="fr">France</option>
-                    <option value="jp">Japan</option>
-                    <option value="in">India</option>
-                    <option value="br">Brazil</option>
-                    <option value="mx">Mexico</option>
-                </select>
+            <div class="search-overlay-body">
+                <div class="search-input-wrapper">
+                    <input 
+                        type="text" 
+                        id="searchInput" 
+                        placeholder="Search for movies, TV shows..." 
+                        autocomplete="off"
+                    >
+                </div>
+                <div class="search-filters">
+                    <div class="filter-group">
+                        <label for="mediaType">Type:</label>
+                        <select id="mediaType">
+                            <option value="all">All</option>
+                            <option value="movie">Movies</option>
+                            <option value="tv">TV Shows</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label for="countryFilter">Country:</label>
+                        <select id="countryFilter">
+                            <option value="">All Countries</option>
+                            <option value="us">United States</option>
+                            <option value="ca">Canada</option>
+                            <option value="gb">United Kingdom</option>
+                            <option value="au">Australia</option>
+                            <option value="de">Germany</option>
+                            <option value="fr">France</option>
+                            <option value="jp">Japan</option>
+                            <option value="in">India</option>
+                            <option value="br">Brazil</option>
+                            <option value="mx">Mexico</option>
+                        </select>
+                    </div>
+                    <button id="searchBtn" class="search-submit-btn">Search</button>
+                </div>
             </div>
         </div>
+    </div>
+
+    <div class="container">
 
         <div id="loading" class="loading hidden">
             <div class="spinner"></div>
@@ -56,7 +82,32 @@
 
         <div id="error" class="error hidden"></div>
 
-        <div id="results" class="results-grid"></div>
+        <div id="trending" class="trending-section">
+            <h2 class="section-title">🔥 Trending Now</h2>
+            <div id="trendingGrid" class="results-grid"></div>
+        </div>
+
+        <div id="searchResults" class="search-results-section hidden">
+            <h2 class="section-title">🔎 Search Results</h2>
+            <div id="results" class="results-grid"></div>
+        </div>
+
+        <div id="topLists" class="search-results-section">
+            <h2 class="section-title">🏆 Top 10 Movies</h2>
+            <div id="topMovies" class="results-grid"></div>
+
+            <h2 class="section-title">📺 Top 10 TV Shows</h2>
+            <div id="topShows" class="results-grid"></div>
+        </div>
+    </div>
+
+    <!-- Detail modal -->
+    <div id="detailModal" class="modal hidden">
+        <div class="modal-backdrop"></div>
+        <div class="modal-content">
+            <button id="modalClose" class="modal-close" aria-label="Close">✕</button>
+            <div id="modalBody"></div>
+        </div>
     </div>
 
     <footer>
