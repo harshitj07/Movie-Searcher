@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Global Streaming Finder - Find Movies & Shows Worldwide</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🌍 Global Streaming Finder</h1>
+            <p class="subtitle">Find where to watch any movie or show around the world</p>
+        </header>
+
+        <div class="search-section">
+            <div class="search-container">
+                <input 
+                    type="text" 
+                    id="searchInput" 
+                    placeholder="Search for movies, TV shows..." 
+                    autocomplete="off"
+                >
+                <button id="searchBtn">Search</button>
+            </div>
+            
+            <div class="filters">
+                <label for="mediaType">Type:</label>
+                <select id="mediaType">
+                    <option value="all">All</option>
+                    <option value="movie">Movies</option>
+                    <option value="tv">TV Shows</option>
+                </select>
+                
+                <label for="countryFilter">Country:</label>
+                <select id="countryFilter">
+                    <option value="">All Countries</option>
+                    <option value="us">United States</option>
+                    <option value="ca">Canada</option>
+                    <option value="gb">United Kingdom</option>
+                    <option value="au">Australia</option>
+                    <option value="de">Germany</option>
+                    <option value="fr">France</option>
+                    <option value="jp">Japan</option>
+                    <option value="in">India</option>
+                    <option value="br">Brazil</option>
+                    <option value="mx">Mexico</option>
+                </select>
+            </div>
+        </div>
+
+        <div id="loading" class="loading hidden">
+            <div class="spinner"></div>
+            <p>Searching worldwide streaming availability...</p>
+        </div>
+
+        <div id="error" class="error hidden"></div>
+
+        <div id="results" class="results-grid"></div>
+    </div>
+
+    <footer>
+        <p>Made for VPN users who want to access content globally 🚀</p>
+    </footer>
+
+    <script src="app.js"></script>
+</body>
+</html>
