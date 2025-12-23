@@ -573,6 +573,9 @@ async function displayMediaCard(item, options = {}) {
     const imdbRating = await getIMDbRating(title, year, item.media_type);
     const details = await getMediaDetails(item.id, item.media_type);
     
+    // Use TMDB rating as fallback if IMDb is not available
+    const rating = imdbRating || (item.vote_average ? item.vote_average.toFixed(1) : null);
+    
     // Format runtime or episodes/seasons info
     let durationInfo = '';
     if (item.media_type === 'movie' && details.runtime) {
@@ -605,7 +608,7 @@ async function displayMediaCard(item, options = {}) {
                 <span class="meta-item">🎬 ${item.media_type === 'tv' ? 'TV Show' : 'Movie'}</span>
                 ${languageName ? `<span class="meta-item">🌍 ${languageName}</span>` : ''}
                 ${durationInfo ? `<span class="meta-item">⏱️ ${durationInfo}</span>` : ''}
-                ${imdbRating ? `<span class="imdb-rating">⭐ ${imdbRating}</span>` : ''}
+                ${rating ? `<span class="imdb-rating">⭐ ${rating}</span>` : ''}
             </div>
             <div class="badge-row">
                 ${isNew ? '<span class="pill pill-new">New</span>' : ''}
