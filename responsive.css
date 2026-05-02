@@ -188,9 +188,8 @@
     /* ── Modal body ── */
     .modal-body {
         grid-template-columns: 1fr;
-        padding: 15px 16px 44px;
+        padding: 15px 16px 10px;
         gap: 0;
-        /* Ensure the grid column can't grow wider than its container */
         min-width: 0;
     }
 
@@ -222,7 +221,7 @@
     .cast-name      { font-size: 9px; }
     .cast-role      { font-size: 8px; }
 
-    .modal-similar { padding: 16px 16px 28px; }
+    .modal-similar { padding: 12px 16px 28px; margin-top: 0; }
     .similar-grid { grid-template-columns: repeat(4, 1fr); gap: 7px; }
 }
 
@@ -263,7 +262,7 @@
     .stream-name        { font-size: 11px; }
 
     /* ── Modal body ── */
-    .modal-body         { padding: 13px 14px 40px; }
+    .modal-body         { padding: 13px 14px 8px; }
     .modal-overview     { font-size: 12px; margin-bottom: 14px; }
 
     /* ── Section titles ── */
@@ -274,7 +273,7 @@
     .cast-avatar-ph { width: 46px; height: 46px; font-size: 15px; }
     .cast-item      { width: 54px; }
 
-    .modal-similar { padding: 14px 14px 24px; }
+    .modal-similar { padding: 10px 14px 24px; margin-top: 0; }
     .similar-grid   { grid-template-columns: repeat(3, 1fr); gap: 6px; }
     .sim-name       { font-size: 9px; }
 }
