@@ -1,0 +1,392 @@
+/* ================================================================
+   CineScout — responsive.css
+   Loaded after styles.css. All breakpoint overrides live here.
+
+   Breakpoints (progressive collapse, widest → narrowest):
+     ≤1100px  tight desktop / large tablet
+     ≤900px   tablet landscape — hamburger kicks in, 1-col modal
+     ≤680px   tablet portrait / phone landscape — bottom-sheet modal
+     ≤480px   phone portrait
+     ≤360px   very small phone (≤ iPhone SE 1st gen)
+
+   OVERFLOW RULES FOR THE BOTTOM-SHEET MODAL:
+     • .modal gets  overflow-y: auto  +  overflow-x: clip
+       (NOT overflow: hidden — that would kill the cast-row's
+        horizontal scroll on iOS. clip trims the rounded corners
+        but lets nested overflow-x: auto containers still work.)
+   ================================================================ */
+
+
+/* ══════════════════════════════════════════════════════════════
+   ≤ 1100px  — tighten padding on large tablets / small laptops
+   ══════════════════════════════════════════════════════════════ */
+@media (max-width: 1100px) {
+
+    /* Nav */
+    .nav          { padding: 0 3%; gap: 18px; }
+
+    /* Rows */
+    .row-head     { padding: 0 3%; }
+    .row-track    { padding-left: 3%; padding-right: 3%; }
+    .row-arrow-l  { left:  calc(3% - 17px); }
+    .row-arrow-r  { right: calc(3% - 17px); }
+
+    /* Hero */
+    .hero-content { padding: 0 4% 90px; }
+
+    /* Search */
+    .search-top     { padding-left: 4%; padding-right: 4%; }
+    .search-filters { padding-left: 4%; }
+    .search-body    { padding-left: 4%; padding-right: 4%; }
+}
+
+
+/* ══════════════════════════════════════════════════════════════
+   ≤ 900px  — hamburger nav, 1-column modal, smaller cards
+   ══════════════════════════════════════════════════════════════ */
+@media (max-width: 900px) {
+
+    /* ── Nav ── */
+    .nav            { flex-wrap: nowrap; padding: 0 4%; align-items: center; gap: 0; }
+    .nav-links      { display: none; }
+    .nav-right      { gap: 4px; margin-left: auto; }
+    .hamburger-btn  { display: flex; }
+
+    /* ── Hero ── */
+    .hero           { height: 68vh; }
+    .hero-content   { padding: 0 5% 80px; max-width: 100%; }
+    .hero-title     { font-size: clamp(22px, 4vw, 48px); }
+
+    /* ── Row arrows hidden (no hover intent on touch) ── */
+    .row-arrow      { display: none; }
+    .row-title      { font-size: 14px; }
+
+    /* ── Cards: 148px → 128px ── */
+    .card           { width: 128px; }
+    .card-poster    { width: 128px; height: 192px; }
+    .skel-card      { width: 128px; }
+    .skel-poster    { width: 128px; height: 192px; }
+
+    /* ── Modal: collapse to single column ── */
+    .modal-body {
+        grid-template-columns: 1fr;
+        gap: 0;
+        padding: 20px 24px 32px;
+    }
+    .modal-col-side {
+        border-top: 1px solid var(--surf2);
+        padding-top: 16px;
+        margin-top: 10px;
+    }
+    .modal-banner   { height: 250px; }
+
+    .similar-grid   { grid-template-columns: repeat(4, 1fr); }
+}
+
+
+/* ══════════════════════════════════════════════════════════════
+   ≤ 680px  — tablet portrait / phone landscape — BOTTOM SHEET
+   ══════════════════════════════════════════════════════════════ */
+@media (max-width: 680px) {
+
+    /* ── Hero ── */
+    .hero           { height: 58vh; min-height: 270px; }
+    .hero-content   { padding: 0 5% 52px; }
+    .hero-overview  { display: none; }
+    .hero-title     { font-size: clamp(18px, 5.5vw, 30px); }
+    .hero-meta      { gap: 7px; font-size: 12px; }
+    .hero-eyebrow   { font-size: 10px; letter-spacing: 1.5px; }
+    .btn-primary    { padding: 9px 16px; font-size: 13px; }
+
+    /* ── Rows ── */
+    .rows           { margin-top: -20px; }
+    .row            { margin-bottom: 26px; }
+    .row-head       { padding: 0 4%; margin-bottom: 8px; }
+    .row-title      { font-size: 13px; }
+    .row-track      { padding-left: 4%; padding-right: 4%; gap: 6px; }
+
+    /* ── Cards: 128px → 112px ── */
+    .card           { width: 112px; }
+    .card-poster    { width: 112px; height: 168px; }
+    .skel-card      { width: 112px; }
+    .skel-poster    { width: 112px; height: 168px; }
+    .card-name      { font-size: 11px; }
+
+    /* ── Search overlay ── */
+    .search-inner   { padding-top: var(--nav-h); }
+    .search-top     { padding: 14px 5% 0; gap: 10px; }
+    .search-filters { padding: 10px 5% 0; gap: 7px; flex-wrap: wrap; }
+    .search-body    { padding: 14px 5%; }
+    .search-grid    { grid-template-columns: repeat(auto-fill, minmax(105px, 1fr)); gap: 9px; }
+    .search-input   { font-size: 18px; }
+    .chip           { padding: 5px 11px; font-size: 11px; }
+    .filter-divider { display: none; }
+
+    /* ════════════════════════════════════════════════════════
+       MODAL — bottom sheet
+       Key overflow rules:
+         .modal-bg  → overflow-y: auto  (the actual scroll container)
+         .modal     → overflow-y: visible + overflow-x: clip
+                       This lets .modal-bg do the scrolling while
+                       overflow-x: clip trims the rounded top corners
+                       WITHOUT breaking the cast-row's horizontal scroll.
+       ════════════════════════════════════════════════════════ */
+    .modal-bg {
+        padding: 0;
+        align-items: flex-end;
+        /* modal-bg is already overflow-y: auto from styles.css — good */
+    }
+
+    .modal {
+        width: 100%;
+        max-width: 100%;
+        border-radius: var(--r2) var(--r2) 0 0;
+        max-height: 92dvh;
+        max-height: 92vh;
+        /* Modal handles its own scroll on mobile.
+           overflow-x:clip trims the rounded top corners.
+           overflow-y:auto gives the modal its own internal scroll container
+           so content beyond 92dvh is reachable by scrolling within the modal. */
+        overflow-x: clip;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        transform-origin: bottom center;
+    }
+
+    /* The modal-bg is the scroll container on mobile.
+       Ensure it can't scroll horizontally. */
+    .modal-bg {
+        overflow-x: hidden;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    /* ── Modal Banner ── */
+    .modal-banner       { height: 190px; }
+    .modal-banner-img   { object-position: center 15%; }
+    .modal-banner-info  { padding: 12px 16px; }
+
+    /* Title: clamp to 2 lines so it doesn't push chips off screen */
+    .modal-title {
+        font-size: 19px;
+        margin-bottom: 6px;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        /* Prevent text-overflow from cutting mid-word */
+        word-break: break-word;
+    }
+
+    /* Chips: wrap, don't overflow */
+    .modal-chips        { gap: 5px; margin-bottom: 8px; flex-wrap: wrap; }
+    .modal-chip         { font-size: 11px; padding: 2px 8px; }
+
+    /* TMDB link: smaller */
+    .btn-ghost          { font-size: 11px; padding: 5px 11px; }
+
+    /* ── Where to Watch bar ── */
+    .modal-watch        { padding: 13px 16px 15px; }
+
+    /* Pills: keep horizontal scroll, just tighter padding */
+    .modal-watch .stream-list { gap: 7px; }
+    .modal-watch .stream-item { padding: 7px 10px; }
+
+    /* ── Modal body ── */
+    .modal-body {
+        grid-template-columns: 1fr;
+        padding: 15px 16px 44px;
+        gap: 0;
+        /* Ensure the grid column can't grow wider than its container */
+        min-width: 0;
+    }
+
+    /* Overview: clamp to 4 lines to save vertical space */
+    .modal-overview {
+        font-size: 13px;
+        line-height: 1.65;
+        margin-bottom: 16px;
+        display: -webkit-box;
+        -webkit-line-clamp: 4;
+        line-clamp: 4;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    /* Sidebar: hide on small screens — key info lives in chips */
+    .modal-col-side { display: none; }
+
+    /* ── Cast row — iOS-safe horizontal scroll ──
+       IMPORTANT: do NOT set overflow: hidden on any ancestor of .cast-row
+       or -webkit-overflow-scrolling: touch stops working on Safari/iOS.
+       The parent chain is: .modal (overflow-x:clip, overflow-y:visible)
+       → .modal-body → .modal-col-main → .modal-section → .cast-row.
+       overflow-x: clip on .modal does NOT create a scroll container,
+       so the inner overflow-x: auto on .cast-row is fully functional. */
+    .cast-row {
+        -webkit-overflow-scrolling: touch;
+        /* Ensure it still scrolls horizontally and doesn't clip */
+        overflow-x: auto;
+        overflow-y: visible;
+    }
+    .cast-avatar    { width: 50px;  height: 50px;  }
+    .cast-avatar-ph { width: 50px;  height: 50px;  font-size: 16px; }
+    .cast-item      { width: 58px; }
+    .cast-name      { font-size: 9px; }
+    .cast-role      { font-size: 8px; }
+
+    .modal-similar { padding: 16px 16px 28px; }
+    .similar-grid { grid-template-columns: repeat(4, 1fr); gap: 7px; }
+}
+
+
+/* ══════════════════════════════════════════════════════════════
+   ≤ 480px  — phone portrait
+   ══════════════════════════════════════════════════════════════ */
+@media (max-width: 480px) {
+
+    /* ── Hero ── */
+    .hero           { height: 50vh; min-height: 240px; }
+    .hero-eyebrow   { display: none; }
+    .hero-title     { font-size: clamp(15px, 5.2vw, 22px); }
+    .hero-meta      { font-size: 11px; gap: 6px; }
+    .btn-primary    { padding: 8px 14px; font-size: 12px; }
+
+    /* ── Cards: 112px → 100px ── */
+    .card           { width: 100px; }
+    .card-poster    { width: 100px; height: 150px; }
+    .skel-card      { width: 100px; }
+    .skel-poster    { width: 100px; height: 150px; }
+    .card-name      { font-size: 10px; }
+
+    /* ── Search ── */
+    .search-grid    { grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    .search-input   { font-size: 16px; }
+
+    /* ── Modal banner ── */
+    .modal-banner       { height: 160px; }
+    .modal-banner-info  { padding: 10px 14px; }
+    .modal-title        { font-size: 17px; }
+
+    /* ── Where to Watch ── */
+    .modal-watch        { padding: 11px 14px 13px; }
+    .modal-watch .stream-item { padding: 6px 9px; }
+    .stream-pill-logo   { width: 18px; height: 18px; }
+    .stream-pill-abbr   { width: 18px; height: 18px; font-size: 7px; }
+    .stream-name        { font-size: 11px; }
+
+    /* ── Modal body ── */
+    .modal-body         { padding: 13px 14px 40px; }
+    .modal-overview     { font-size: 12px; margin-bottom: 14px; }
+
+    /* ── Section titles ── */
+    .modal-section-title { font-size: 10px; letter-spacing: .09em; }
+
+    /* ── Cast ── */
+    .cast-avatar    { width: 46px; height: 46px; }
+    .cast-avatar-ph { width: 46px; height: 46px; font-size: 15px; }
+    .cast-item      { width: 54px; }
+
+    .modal-similar { padding: 14px 14px 24px; }
+    .similar-grid   { grid-template-columns: repeat(3, 1fr); gap: 6px; }
+    .sim-name       { font-size: 9px; }
+}
+
+
+/* ══════════════════════════════════════════════════════════════
+   ≤ 360px  — very small phones (iPhone SE 1st gen, etc.)
+   ══════════════════════════════════════════════════════════════ */
+@media (max-width: 360px) {
+
+    /* ── Hero ── */
+    .hero           { height: 46vh; min-height: 220px; }
+    .hero-title     { font-size: 15px; }
+    .hero-meta      { font-size: 10px; gap: 5px; }
+
+    /* ── Cards: 100px → 90px ── */
+    .card           { width: 90px; }
+    .card-poster    { width: 90px; height: 135px; }
+    .skel-card      { width: 90px; }
+    .skel-poster    { width: 90px; height: 135px; }
+    .card-name      { font-size: 10px; }
+
+    /* ── Search ── */
+    .search-grid    { grid-template-columns: repeat(3, 1fr); gap: 6px; }
+
+    /* ── Modal banner ── */
+    .modal-banner       { height: 140px; }
+    .modal-banner-info  { padding: 9px 13px; }
+    .modal-title        { font-size: 15px; }
+
+    /* ── Where to Watch ── */
+    .modal-watch        { padding: 10px 13px 12px; }
+    .modal-watch .stream-item { padding: 5px 8px; }
+
+    /* ── Modal body ── */
+    .modal-body         { padding: 12px 13px 36px; }
+    .modal-overview     { -webkit-line-clamp: 3; line-clamp: 3; }
+
+    /* ── Cast: even tighter ── */
+    .cast-avatar    { width: 44px; height: 44px; }
+    .cast-avatar-ph { width: 44px; height: 44px; font-size: 14px; }
+    .cast-item      { width: 52px; }
+    .cast-name      { font-size: 8px; }
+    .cast-role      { font-size: 8px; }
+
+    /* ── Similar: reduce gap ── */
+    .similar-grid   { gap: 5px; }
+    .sim-name       { font-size: 9px; padding: 4px 5px; }
+}
+
+
+/* ══════════════════════════════════════════════════════════════
+   Safe-area insets — notched phones (iPhone X+)
+   Pad the bottom of the bottom-sheet modal so content isn't
+   hidden behind the home indicator.
+   ══════════════════════════════════════════════════════════════ */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+    @media (max-width: 680px) {
+        .modal-body {
+            padding-bottom: calc(44px + env(safe-area-inset-bottom));
+        }
+    }
+    @media (max-width: 480px) {
+        .modal-body {
+            padding-bottom: calc(40px + env(safe-area-inset-bottom));
+        }
+    }
+    @media (max-width: 360px) {
+        .modal-body {
+            padding-bottom: calc(36px + env(safe-area-inset-bottom));
+        }
+    }
+}
+
+
+/* ══════════════════════════════════════════════════════════════
+   Touch / hover-incapable devices
+   Disable hover-only visual effects that feel wrong on touch
+   ══════════════════════════════════════════════════════════════ */
+@media (hover: none) {
+
+    /* Cards: no scale, no shadow, no overlay */
+    .card:hover             { transform: none; box-shadow: none; z-index: auto; }
+    .card-hover             { display: none; }
+
+    /* CTA button: no lift */
+    .btn-primary:hover      { transform: none; }
+
+    /* Row arrows: never show (no hover intent) */
+    .row-wrap:hover .row-arrow { opacity: 0; }
+
+    /* Similar grid cards: no scale */
+    .sim-card:hover         { transform: none; }
+
+    /* Stream items: no background change on "hover" (tap) */
+    .stream-item:hover      { background: var(--surf2); }
+
+    /* Nav/search buttons: no background flash */
+    .search-btn:hover       { background: none; }
+    .hamburger-btn:hover    { background: none; }
+}

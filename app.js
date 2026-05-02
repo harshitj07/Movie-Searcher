@@ -1,1314 +1,1142 @@
-// API Configuration
+/* ================================================================
+   CineScout — app.js
+   ================================================================ */
+
+// ── Config ────────────────────────────────────────────────────
 const CONFIG = {
-    // The Movie Database (TMDB) - Free API for movie/TV data
-    TMDB_API_KEY: '34d6ad4c6e8b4ef4d94d2fd6d472ca38', // Get from https://www.themoviedb.org/settings/api
-    TMDB_BASE_URL: 'https://api.themoviedb.org/3',
-    TMDB_IMAGE_BASE: 'https://image.tmdb.org/t/p/w500',
-    
-    // OMDb API - Free API for IMDb ratings
-    OMDB_API_KEY: '575f5a93', // Get from http://www.omdbapi.com/apikey.aspx
-    OMDB_BASE_URL: 'https://www.omdbapi.com',
-    
-    // Streaming Availability API - RapidAPI
-    STREAMING_API_KEY: '8769a2a195msh22217bc0f1da53fp1b870ejsnd77ca55fb273', // Get from https://rapidapi.com/movie-of-the-night-movie-of-the-night-default/api/streaming-availability
-    STREAMING_BASE_URL: 'https://streaming-availability.p.rapidapi.com'
+    TMDB_API_KEY:      '34d6ad4c6e8b4ef4d94d2fd6d472ca38',
+    OMDB_API_KEY:      '575f5a93',
+    STREAMING_API_KEY: '8769a2a195msh22217bc0f1da53fp1b870ejsnd77ca55fb273',
+    TMDB_BASE:   'https://api.themoviedb.org/3',
+    TMDB_IMG:    'https://image.tmdb.org/t/p',
+    OMDB_BASE:   'https://www.omdbapi.com',
+    STREAM_BASE: 'https://streaming-availability.p.rapidapi.com'
 };
 
-// Country code to name mapping
+// ── Country / Language data ───────────────────────────────────
 const COUNTRY_NAMES = {
-    ca: 'Canada',
-    us: 'United States',
-    gb: 'United Kingdom',
-    au: 'Australia',
-    de: 'Germany',
-    fr: 'France',
-    jp: 'Japan',
-    in: 'India',
-    br: 'Brazil',
-    mx: 'Mexico',
-    es: 'Spain',
-    it: 'Italy',
-    nl: 'Netherlands',
-    se: 'Sweden',
-    no: 'Norway',
-    fi: 'Finland',
-    dk: 'Denmark',
-    ie: 'Ireland',
-    nz: 'New Zealand',
-    ar: 'Argentina',
-    cl: 'Chile',
-    co: 'Colombia',
-    kr: 'South Korea',
-    tw: 'Taiwan',
-    hk: 'Hong Kong',
-    sg: 'Singapore',
-    za: 'South Africa'
+    // Americas
+    us:'United States', ca:'Canada', mx:'Mexico', br:'Brazil', ar:'Argentina',
+    cl:'Chile', co:'Colombia', pe:'Peru', ve:'Venezuela', ec:'Ecuador',
+    bo:'Bolivia', py:'Paraguay', uy:'Uruguay', cr:'Costa Rica', pa:'Panama',
+    gt:'Guatemala', sv:'El Salvador', hn:'Honduras', ni:'Nicaragua',
+    do:'Dominican Republic', jm:'Jamaica', tt:'Trinidad and Tobago',
+    // Europe
+    gb:'United Kingdom', de:'Germany', fr:'France', it:'Italy', es:'Spain',
+    nl:'Netherlands', se:'Sweden', no:'Norway', fi:'Finland', dk:'Denmark',
+    ie:'Ireland', pt:'Portugal', ch:'Switzerland', at:'Austria', be:'Belgium',
+    pl:'Poland', cz:'Czech Republic', hu:'Hungary', ro:'Romania', gr:'Greece',
+    bg:'Bulgaria', hr:'Croatia', rs:'Serbia', sk:'Slovakia', si:'Slovenia',
+    lt:'Lithuania', lv:'Latvia', ee:'Estonia', lu:'Luxembourg', mt:'Malta',
+    cy:'Cyprus', is:'Iceland', mk:'North Macedonia', al:'Albania',
+    ba:'Bosnia and Herzegovina', md:'Moldova', ua:'Ukraine', ru:'Russia',
+    // Asia-Pacific
+    jp:'Japan', kr:'South Korea', cn:'China', in:'India', au:'Australia',
+    nz:'New Zealand', sg:'Singapore', hk:'Hong Kong', tw:'Taiwan',
+    th:'Thailand', id:'Indonesia', my:'Malaysia', ph:'Philippines',
+    vn:'Vietnam', pk:'Pakistan', bd:'Bangladesh',
+    // Middle East & Africa
+    ae:'United Arab Emirates', sa:'Saudi Arabia', il:'Israel', tr:'Turkey',
+    eg:'Egypt', ma:'Morocco', ng:'Nigeria', ke:'Kenya', za:'South Africa',
+    gh:'Ghana', et:'Ethiopia', tz:'Tanzania', qa:'Qatar', kw:'Kuwait'
 };
 
-// Language code to name mapping
 const LANGUAGE_NAMES = {
-    en: 'English',
-    ko: 'Korean',
-    ja: 'Japanese',
-    fr: 'French',
-    es: 'Spanish',
-    de: 'German',
-    it: 'Italian',
-    zh: 'Chinese',
-    hi: 'Hindi',
-    pt: 'Portuguese',
-    ru: 'Russian',
-    ar: 'Arabic',
-    th: 'Thai',
-    nl: 'Dutch',
-    sv: 'Swedish',
-    no: 'Norwegian',
-    da: 'Danish',
-    fi: 'Finnish',
-    pl: 'Polish',
-    tr: 'Turkish'
+    en:'English', ko:'Korean', ja:'Japanese', fr:'French', es:'Spanish',
+    de:'German', it:'Italian', zh:'Chinese', hi:'Hindi', pt:'Portuguese',
+    ru:'Russian', ar:'Arabic', th:'Thai', nl:'Dutch', sv:'Swedish',
+    no:'Norwegian', da:'Danish', fi:'Finnish', pl:'Polish', tr:'Turkish'
 };
 
-const COUNTRY_PRIORITY = ['ca', 'us', 'gb', 'au', 'de', 'fr', 'jp', 'in', 'br', 'mx'];
+const COUNTRY_PRIORITY = ['ca','us','gb','au','de','fr','jp','in','br','mx'];
 
-const getCountryLabel = (code = '') => {
-    const cc = code.toLowerCase();
-    return COUNTRY_NAMES[cc] || cc.toUpperCase();
-};
 
-const sortCountries = (arr = []) => {
-    const clean = (c) => c.replace('*', '');
-    const isCode = (c) => /^[A-Z]{2,3}$/.test(clean(c));
-    const priorityIndex = (c) => {
-        const cc = clean(c).toLowerCase();
-        const idx = COUNTRY_PRIORITY.indexOf(cc);
-        return idx === -1 ? COUNTRY_PRIORITY.length : idx;
-    };
-    return [...arr].sort((a, b) => {
-        const pa = priorityIndex(a);
-        const pb = priorityIndex(b);
-        if (pa !== pb) return pa - pb;
-
-        const aIsCode = isCode(a);
-        const bIsCode = isCode(b);
-        if (aIsCode !== bIsCode) return aIsCode ? 1 : -1; // names before codes
-
-        return a.localeCompare(b);
-    });
-};
-
-// DOM Elements
-const searchInput = document.getElementById('searchInput');
-const searchBtn = document.getElementById('searchBtn');
-const mediaTypeSelect = document.getElementById('mediaType');
-const countryFilter = document.getElementById('countryFilter');
-const resultsContainer = document.getElementById('results');
-const trendingContainer = document.getElementById('trendingGrid');
-const searchResultsSection = document.getElementById('searchResults');
-const topListsSection = document.getElementById('topLists');
-const topMoviesContainer = document.getElementById('topMovies');
-const topShowsContainer = document.getElementById('topShows');
-const documentariesContainer = document.getElementById('documentaries');
-const animeContainer = document.getElementById('anime');
-const internationalContainer = document.getElementById('international');
-const kidsContainer = document.getElementById('kids');
-const loadingElement = document.getElementById('loading');
-const errorElement = document.getElementById('error');
-const detailModal = document.getElementById('detailModal');
-const modalBody = document.getElementById('modalBody');
-const modalClose = document.getElementById('modalClose');
-const searchOverlay = document.getElementById('searchOverlay');
-const searchIconBtn = document.getElementById('searchIconBtn');
-const closeSearchBtn = document.getElementById('closeSearchBtn');
-const homeLink = document.getElementById('homeLink');
-
-// Globals
-const streamingCache = {};
-
-// Streaming service URLs
 const SERVICE_URLS = {
-    'Netflix': 'https://www.netflix.com',
-    'Amazon Prime Video': 'https://www.amazon.com/primevideo',
-    'Disney Plus': 'https://www.disneyplus.com',
-    'Disney Plus Hotstar': 'https://www.hotstar.com',
-    'Hulu': 'https://www.hulu.com',
-    'HBO Max': 'https://www.max.com',
-    'Apple TV Plus': 'https://tv.apple.com',
-    'Paramount Plus': 'https://www.paramountplus.com',
-    'Peacock': 'https://www.peacocktv.com',
-    'Showtime': 'https://www.showtime.com',
-    'Starz': 'https://www.starz.com',
-    'Crave': 'https://www.crave.ca',
-    'fuboTV': 'https://www.fubo.tv',
-    'Crunchyroll': 'https://www.crunchyroll.com',
-    'Discovery Plus': 'https://www.discoveryplus.com',
-    'ESPN Plus': 'https://plus.espn.com',
-    'YouTube Premium': 'https://www.youtube.com/premium',
-    'Max': 'https://www.max.com',
-    'BritBox': 'https://www.britbox.com',
-    'Acorn TV': 'https://acorn.tv',
-    'Criterion Channel': 'https://www.criterionchannel.com',
-    'MUBI': 'https://mubi.com',
-    'Canal+': 'https://www.canalplus.com',
-    'NOW TV': 'https://www.nowtv.com',
-    'NOW': 'https://www.nowtv.com',
-    'Viaplay': 'https://viaplay.com',
-    'WOW': 'https://www.wowtv.co.uk',
-    'Sky Go': 'https://www.sky.com/watch',
-    'Stan': 'https://www.stan.com.au',
-    'ZEE5': 'https://www.zee5.com',
-    'Sony LIV': 'https://www.sonyliv.com',
-    'Voot': 'https://www.voot.com',
-    'Globoplay': 'https://globoplay.globo.com',
-    'Showmax': 'https://www.showmax.com',
-    'Funimation': 'https://www.funimation.com'
+    'Netflix':'https://www.netflix.com',
+    'Amazon Prime Video':'https://www.amazon.com/primevideo',
+    'Disney Plus':'https://www.disneyplus.com',
+    'Disney Plus Hotstar':'https://www.hotstar.com',
+    'Hulu':'https://www.hulu.com',
+    'HBO Max':'https://www.max.com',
+    'Max':'https://www.max.com',
+    'Apple TV Plus':'https://tv.apple.com',
+    'Paramount Plus':'https://www.paramountplus.com',
+    'Peacock':'https://www.peacocktv.com',
+    'Showtime':'https://www.showtime.com',
+    'Starz':'https://www.starz.com',
+    'Crave':'https://www.crave.ca',
+    'fuboTV':'https://www.fubo.tv',
+    'Crunchyroll':'https://www.crunchyroll.com',
+    'Discovery Plus':'https://www.discoveryplus.com',
+    'BritBox':'https://www.britbox.com',
+    'Acorn TV':'https://acorn.tv',
+    'Criterion Channel':'https://www.criterionchannel.com',
+    'MUBI':'https://mubi.com',
+    'Canal+':'https://www.canalplus.com',
+    'NOW TV':'https://www.nowtv.com',
+    'NOW':'https://www.nowtv.com',
+    'Viaplay':'https://viaplay.com',
+    'WOW':'https://www.wowtv.co.uk',
+    'Sky Go':'https://www.sky.com/watch',
+    'Stan':'https://www.stan.com.au',
+    'ZEE5':'https://www.zee5.com',
+    'Sony LIV':'https://www.sonyliv.com',
+    'Voot':'https://www.voot.com',
+    'Globoplay':'https://globoplay.globo.com',
+    'Showmax':'https://www.showmax.com',
+    'Funimation':'https://www.funimation.com'
+};
+
+const SERVICE_NAME_MAP = {
+    'netflix':'Netflix','netflixbasic':'Netflix','netflixwithads':'Netflix',
+    'netflixads':'Netflix','netflixstandardwithads':'Netflix',
+    'prime':'Amazon Prime Video','amazon':'Amazon Prime Video',
+    'amazonprime':'Amazon Prime Video','amazonprimevideo':'Amazon Prime Video','primevideo':'Amazon Prime Video',
+    'disney':'Disney Plus','disneyplus':'Disney Plus','disney+':'Disney Plus',
+    'hulu':'Hulu','hbo':'HBO Max','hbomax':'HBO Max','max':'Max',
+    'paramount':'Paramount Plus','paramountplus':'Paramount Plus','paramount+':'Paramount Plus',
+    'peacock':'Peacock','apple':'Apple TV Plus','appletv':'Apple TV Plus',
+    'appletvplus':'Apple TV Plus','appletv+':'Apple TV Plus',
+    'britbox':'BritBox','acorn':'Acorn TV','acorntv':'Acorn TV',
+    'discoveryplus':'Discovery Plus','discovery+':'Discovery Plus',
+    'criterion':'Criterion Channel','criterionchannel':'Criterion Channel',
+    'showtime':'Showtime','starz':'Starz','crave':'Crave',
+    'canalplus':'Canal+','canal+':'Canal+',
+    'nowtv':'NOW TV','now':'NOW','nowmax':'NOW','viaplay':'Viaplay',
+    'wow':'WOW','skygo':'Sky Go','stan':'Stan',
+    'hotstar':'Disney Plus Hotstar','hotstarpremium':'Disney Plus Hotstar',
+    'disneyhotstar':'Disney Plus Hotstar','disney+hotstar':'Disney Plus Hotstar',
+    'zee5':'ZEE5','sonyliv':'Sony LIV','voot':'Voot',
+    'globoplay':'Globoplay','showmax':'Showmax','mubi':'MUBI',
+    'crunchyroll':'Crunchyroll','funimation':'Funimation'
 };
 
 const SERVICE_PRIORITY = [
-    'netflix',
-    'crave', 'hbo', 'hbomax', 'starz',
-    'amazon prime', 'amazonprime', 'primevideo', 'amazonprimevideo',
-    'disney+', 'disneyplus',
-    'appletv+', 'appletvplus', 'apple tv+',
-    'paramount+', 'paramountplus',
-    'britbox',
-    'acorntv', 'acorn tv',
-    'discovery+', 'discoveryplus',
-    'criterionchannel', 'criterion channel'
+    'netflix','crave','hbo','hbomax','starz',
+    'amazon prime','amazonprime','primevideo','amazonprimevideo',
+    'disney+','disneyplus','appletv+','appletvplus','apple tv+',
+    'paramount+','paramountplus','britbox','acorntv','acorn tv',
+    'discovery+','discoveryplus','criterionchannel','criterion channel'
 ];
 
-const servicePriorityWeight = (name = '') => {
-    const key = name.toLowerCase().replace(/[^a-z0-9+ ]/g, '').trim();
-    const idx = SERVICE_PRIORITY.indexOf(key);
-    return idx === -1 ? SERVICE_PRIORITY.length : idx;
+// ── State ─────────────────────────────────────────────────────
+const state = {
+    country:       localStorage.getItem('cs_country') ?? '',
+    searchType:    'all',
+    searchService: null,
+    searchTimer:   null,
+    streamCache:   new Map(),
+    heroItems:     [],
+    heroIdx:       0,
+    heroTimer:     null,
+    currentPage:   'home'
 };
 
-const normalizeServiceName = (name = '', serviceNameMap = {}) => {
-    const serviceId = name.toLowerCase().replace(/[^a-z0-9+]/g, '');
-    const mapped = serviceNameMap[serviceId];
-    if (mapped) return mapped;
-    
-    // Also try with spaces removed from original name
-    const noSpaces = name.toLowerCase().replace(/\s+/g, '').replace(/[^a-z0-9+]/g, '');
-    return serviceNameMap[noSpaces] || name;
+// ── Helpers ───────────────────────────────────────────────────
+// Returns the full country name, or null if the code is unknown
+const getCountryLabel = (code = '') => COUNTRY_NAMES[code.toLowerCase()] || null;
+const getCountryLabelFallback = (code = '') => COUNTRY_NAMES[code.toLowerCase()] || code.toUpperCase();
+
+const sortCountries = (arr = []) => {
+    const clean = c => c.replace('*','');
+    const pri   = c => { const i = COUNTRY_PRIORITY.indexOf(clean(c).toLowerCase()); return i === -1 ? 99 : i; };
+    return [...arr].sort((a,b) => pri(a) - pri(b) || a.localeCompare(b));
 };
 
-// Event Listeners
-searchBtn.addEventListener('click', performSearch);
-searchInput.addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') performSearch();
-});
+const servicePriWeight = (name = '') => {
+    const k = name.toLowerCase().replace(/[^a-z0-9+ ]/g,'').trim();
+    const i = SERVICE_PRIORITY.indexOf(k);
+    return i === -1 ? 99 : i;
+};
 
-// Levenshtein distance for fuzzy matching
-function levenshteinDistance(str1, str2) {
-    const len1 = str1.length;
-    const len2 = str2.length;
-    const matrix = Array(len1 + 1).fill(null).map(() => Array(len2 + 1).fill(0));
-    
-    for (let i = 0; i <= len1; i++) matrix[i][0] = i;
-    for (let j = 0; j <= len2; j++) matrix[0][j] = j;
-    
-    for (let i = 1; i <= len1; i++) {
-        for (let j = 1; j <= len2; j++) {
-            const cost = str1[i - 1] === str2[j - 1] ? 0 : 1;
-            matrix[i][j] = Math.min(
-                matrix[i - 1][j] + 1,      // deletion
-                matrix[i][j - 1] + 1,      // insertion
-                matrix[i - 1][j - 1] + cost // substitution
-            );
-        }
+const normalizeServiceName = (name = '') => {
+    const toId = s => s.toLowerCase().replace(/[^a-z0-9+]/g, '');
+    const direct = SERVICE_NAME_MAP[toId(name)];
+    if (direct) return direct;
+    // Strip qualifiers like "(No Ads)", "with Showtime", "basic", "Premium Plus", etc.
+    const stripped = name
+        .replace(/\s*\(.*?\)/g, '')
+        .replace(/\s+with\s+\S+/gi, '')
+        .replace(/\b(basic|standard|premium plus|premium|no ads?|with ads?|ads)\b/gi, '')
+        .replace(/\s+/g, ' ').trim();
+    if (stripped && stripped !== name) {
+        const strippedMatch = SERVICE_NAME_MAP[toId(stripped)];
+        if (strippedMatch) return strippedMatch;
+        return stripped;
     }
-    
-    return matrix[len1][len2];
-}
+    return name;
+};
 
-// Normalize string for comparison
-function normalizeForSearch(str) {
-    return str.toLowerCase().replace(/[^a-z0-9\s]/g, '').trim();
-}
-
-// Search overlay controls
-searchIconBtn?.addEventListener('click', openSearchOverlay);
-closeSearchBtn?.addEventListener('click', closeSearchOverlay);
-searchOverlay?.addEventListener('click', (e) => {
-    if (e.target === searchOverlay) closeSearchOverlay();
-});
-
-// Home navigation
-homeLink?.addEventListener('click', (e) => {
-    e.preventDefault();
-    returnToHome();
-});
-
-// Modal controls
-modalClose?.addEventListener('click', closeModal);
-detailModal?.addEventListener('click', (e) => {
-    if (e.target.classList.contains('modal-backdrop')) closeModal();
-});
-document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') {
-        if (!detailModal.classList.contains('hidden')) {
-            closeModal();
-        } else if (!searchOverlay.classList.contains('hidden')) {
-            closeSearchOverlay();
-        }
-    }
-});
-
-// Load trending movies and shows
-async function loadTrending() {
-    try {
-        const today = new Date();
-        const todayStr = today.toISOString().split('T')[0];
-        const past90Days = new Date(today.getTime() - 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
-        const future45Days = new Date(today.getTime() + 45 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
-        const past60Days = new Date(today.getTime() - 60 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
-        
-        // Get movies currently in theaters (released within last 90 days or releasing in next 45 days)
-        const theatricalMovies = await fetchTMDB('/discover/movie', {
-            'primary_release_date.gte': past90Days,
-            'primary_release_date.lte': future45Days,
-            'sort_by': 'popularity.desc',
-            'region': 'US',
-            'with_original_language': 'en'
-        });
-        
-        // Get new and returning TV shows (aired in last 60 days)
-        const newShows = await fetchTMDB('/discover/tv', {
-            'air_date.gte': past60Days,
-            'air_date.lte': todayStr,
-            'sort_by': 'popularity.desc',
-            'with_original_language': 'en'
-        });
-        
-        // Combine theatrical movies and new shows
-        const allTrending = [
-            ...theatricalMovies.results.slice(0, 7).map(item => ({ ...item, media_type: 'movie' })),
-            ...newShows.results.slice(0, 5).map(item => ({ ...item, media_type: 'tv' }))
-        ].sort((a, b) => b.popularity - a.popularity).slice(0, 12);
-        
-        // Display trending content
-        trendingContainer.innerHTML = '';
-        for (const item of allTrending) {
-            await displayMediaCard(item, { container: trendingContainer, contextId: 'trending', isTrending: true });
-        }
-    } catch (error) {
-        console.error('Error loading trending:', error);
-        trendingContainer.innerHTML = '<p class="no-streaming">Unable to load trending content. Please try searching for movies or shows.</p>';
-    }
-}
-
-// Main search function
-async function performSearch() {
-    const query = searchInput.value.trim();
-    
-    if (!query) {
-        showError('Please enter a movie or TV show name');
-        return;
-    }
-    
-    // Check if API keys are configured
-    if (CONFIG.TMDB_API_KEY === 'YOUR_TMDB_API_KEY') {
-        showError('Please configure your API keys in app.js. See README.md for instructions.');
-        return;
-    }
-    
-    // Get selected subscriptions
-    const selectedSubscriptions = Array.from(document.querySelectorAll('input[name="subscription"]:checked'))
-        .map(input => input.value.toLowerCase());
-    
-    showLoading(true);
-    hideError();
-    resultsContainer.innerHTML = '';
-    searchResultsSection.classList.remove('hidden');
-    
-    // Hide trending section when showing search results
-    document.getElementById('trending').classList.add('hidden');
-
-    // Hide top lists when showing search results
-    topListsSection?.classList.add('hidden');
-    
-    // Close search overlay
-    closeSearchOverlay();
-    
-    try {
-        const mediaType = mediaTypeSelect.value;
-        const results = await searchMedia(query, mediaType);
-        
-        if (results.length === 0) {
-            showError('No results found. Try a different search term.');
-            showLoading(false);
-            return;
-        }
-        
-        // Get detailed info for each result
-        let displayedCount = 0;
-        for (const item of results.slice(0, 20)) { // Check more items in case filtering removes some
-            if (displayedCount >= 12) break; // Still limit display to 12
-            
-            // If subscriptions are selected, filter by them
-            if (selectedSubscriptions.length > 0) {
-                const hasMatchingSubscription = await checkSubscriptionMatch(item, selectedSubscriptions);
-                if (!hasMatchingSubscription) continue;
-            }
-            
-            await displayMediaCard(item, false);
-            displayedCount++;
-        }
-        
-        if (displayedCount === 0 && selectedSubscriptions.length > 0) {
-            showError('No results found on your selected subscriptions. Try removing some filters.');
-        }
-        
-        showLoading(false);
-    } catch (error) {
-        console.error('Search error:', error);
-        showError('An error occurred while searching. Please try again.');
-        showLoading(false);
-    }
-}
-
-// Search for media using TMDB
-async function searchMedia(query, mediaType) {
-    let allResults = [];
-    
-    // First try exact search
-    if (mediaType === 'all' || mediaType === 'movie') {
-        const movieResults = await fetchTMDB('/search/movie', { query });
-        allResults = allResults.concat(movieResults.results.map(item => ({ ...item, media_type: 'movie' })));
-    }
-    
-    if (mediaType === 'all' || mediaType === 'tv') {
-        const tvResults = await fetchTMDB('/search/tv', { query });
-        allResults = allResults.concat(tvResults.results.map(item => ({ ...item, media_type: 'tv' })));
-    }
-    
-    // Sort by popularity
-    allResults.sort((a, b) => b.popularity - a.popularity);
-    
-    return allResults;
-}
-
-// Fetch from TMDB API
+// ── TMDB fetch ────────────────────────────────────────────────
 async function fetchTMDB(endpoint, params = {}) {
-    const url = new URL(`${CONFIG.TMDB_BASE_URL}${endpoint}`);
-    url.searchParams.append('api_key', CONFIG.TMDB_API_KEY);
-    
-    for (const [key, value] of Object.entries(params)) {
-        url.searchParams.append(key, value);
-    }
-    
-    const response = await fetch(url);
-    if (!response.ok) throw new Error('TMDB API request failed');
-    
-    return await response.json();
+    const url = new URL(`${CONFIG.TMDB_BASE}${endpoint}`);
+    url.searchParams.set('api_key', CONFIG.TMDB_API_KEY);
+    for (const [k,v] of Object.entries(params)) url.searchParams.set(k, v);
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`TMDB ${res.status}`);
+    return res.json();
 }
 
-// Get IMDb rating from OMDb
-async function getIMDbRating(title, year, type) {
-    try {
-        const url = new URL(CONFIG.OMDB_BASE_URL);
-        url.searchParams.append('apikey', CONFIG.OMDB_API_KEY);
-        url.searchParams.append('t', title);
-        if (year) url.searchParams.append('y', year);
-        if (type) url.searchParams.append('type', type === 'tv' ? 'series' : 'movie');
-        
-        const response = await fetch(url);
-        const data = await response.json();
-        
-        if (data.Response === 'True' && data.imdbRating !== 'N/A') {
-            return data.imdbRating;
-        }
-    } catch (error) {
-        console.error('OMDb error:', error);
-    }
-    
-    return null;
+async function getMediaDetails(id, type) {
+    try { return await fetchTMDB(`/${type === 'tv' ? 'tv' : 'movie'}/${id}`); }
+    catch { return {}; }
 }
 
-// Get detailed media information (runtime, seasons, episodes)
-async function getMediaDetails(mediaId, mediaType) {
+async function getMediaCast(id, type) {
     try {
-        const endpoint = mediaType === 'tv' ? `/tv/${mediaId}` : `/movie/${mediaId}`;
-        const data = await fetchTMDB(endpoint);
-        return data;
-    } catch (error) {
-        console.error('Error fetching media details:', error);
-        return {};
-    }
+        const d = await fetchTMDB(`/${type === 'tv' ? 'tv' : 'movie'}/${id}/credits`);
+        return d.cast || [];
+    } catch { return []; }
 }
 
-// Get cast information
-async function getMediaCast(mediaId, mediaType) {
+async function getMediaSimilar(id, type) {
     try {
-        const endpoint = mediaType === 'tv' ? `/tv/${mediaId}/credits` : `/movie/${mediaId}/credits`;
-        const data = await fetchTMDB(endpoint);
-        return data.cast || [];
-    } catch (error) {
-        console.error('Error fetching cast:', error);
-        return [];
-    }
+        // /recommendations uses TMDB's personalised algorithm — far better than /similar
+        const d = await fetchTMDB(`/${type === 'tv' ? 'tv' : 'movie'}/${id}/recommendations`);
+        return (d.results || []).slice(0, 20);
+    } catch { return []; }
 }
 
-// Get streaming availability using real API with fallback search
-async function getStreamingAvailability(mediaItem, meta = {}) {
+// ── Streaming data ────────────────────────────────────────────
+async function getTMDBProviders(item, country = '') {
     try {
-        const type = mediaItem.media_type === 'tv' ? 'series' : 'movie';
-        const tmdbId = mediaItem.id;
-        const title = meta.title || mediaItem.title || mediaItem.name || '';
-        const year = meta.year || '';
-        const countryForSearch = (meta.selectedCountry || '').toLowerCase() || 'us';
-
-        const options = {
-            method: 'GET',
-            headers: {
-                'X-RapidAPI-Key': CONFIG.STREAMING_API_KEY,
-                'X-RapidAPI-Host': 'streaming-availability.p.rapidapi.com'
-            }
-        };
-
-        // Primary attempt: direct show lookup with tmdb source hint
-        const directUrl = `${CONFIG.STREAMING_BASE_URL}/shows/${type}/${tmdbId}?source=tmdb`;
-        console.log(`Fetching streaming data direct for ${type} TMDB ID: ${tmdbId}`);
-        let response = await fetch(directUrl, options);
-
-        // Fallback: try without source hint if direct fails
-        if (!response.ok) {
-            console.warn(`Direct fetch failed (${response.status}), trying without source hint`);
-            response = await fetch(`${CONFIG.STREAMING_BASE_URL}/shows/${type}/${tmdbId}`, options);
-        }
-
-        if (response.ok) {
-            const data = await response.json();
-            if (data?.streamingOptions || data?.result?.streamingOptions) {
-                console.log('Full streaming data (direct):', JSON.stringify(data, null, 2));
-                return data;
-            }
-        }
-
-        // Secondary fallback: title search to disambiguate (best-effort)
-        if (title) {
-            const searchUrl = `${CONFIG.STREAMING_BASE_URL}/search/title/${encodeURIComponent(title)}?country=${countryForSearch}&show_type=${type}${year ? `&year=${year}` : ''}`;
-            console.log(`Fallback search by title: ${searchUrl}`);
-            const searchResp = await fetch(searchUrl, options);
-            if (searchResp.ok) {
-                const searchData = await searchResp.json();
-                const candidates = searchData?.result || searchData?.results || [];
-                const match = candidates.find(r => r.tmdbId === tmdbId) || candidates[0];
-                if (match) {
-                    console.log('Using fallback search match:', JSON.stringify(match, null, 2));
-                    return match;
-                }
-            }
-        }
-
-        console.log(`Streaming data not found for ${title || tmdbId}`);
-        return null;
-    } catch (error) {
-        console.error('Streaming availability error:', error);
-        return null;
-    }
-}
-
-// Get streaming availability using TMDB watch/providers (more reliable)
-async function getTMDBProviders(mediaItem, selectedCountry = '') {
-    try {
-        const type = mediaItem.media_type === 'tv' ? 'tv' : 'movie';
-        const url = `${CONFIG.TMDB_BASE_URL}/${type}/${mediaItem.id}/watch/providers?api_key=${CONFIG.TMDB_API_KEY}`;
-        const res = await fetch(url);
+        const type = item.media_type === 'tv' ? 'tv' : 'movie';
+        const res  = await fetch(`${CONFIG.TMDB_BASE}/${type}/${item.id}/watch/providers?api_key=${CONFIG.TMDB_API_KEY}`);
         if (!res.ok) return null;
         const data = await res.json();
-        const results = data?.results || {};
-
-        const countries = selectedCountry ? [selectedCountry.toLowerCase()] : Object.keys(results).map(c => c.toLowerCase());
-        const platformsByService = {};
-
+        const results = data.results || {};
+        const countries = country ? [country.toLowerCase()] : Object.keys(results).map(c => c.toLowerCase());
+        const map = {};
         for (const cc of countries) {
             const entry = results[cc] || results[cc.toUpperCase()];
             if (!entry) continue;
-            const flatrate = entry.flatrate || [];
-            for (const p of flatrate) {
-                const name = p.provider_name;
-                if (!platformsByService[name]) {
-                    platformsByService[name] = {
-                        type: 'subscription',
-                        countries: new Set()
-                    };
-                }
-                platformsByService[name].countries.add(cc.toUpperCase());
+            for (const p of (entry.flatrate || [])) {
+                const norm = normalizeServiceName(p.provider_name);
+                if (!map[norm]) map[norm] = { type:'subscription', countries: new Set(), logo: p.logo_path };
+                else if (!map[norm].logo && p.logo_path) map[norm].logo = p.logo_path;
+                map[norm].countries.add(cc.toUpperCase());
             }
         }
-
-        return Object.keys(platformsByService).length ? platformsByService : null;
-    } catch (e) {
-        console.error('TMDB providers error:', e);
-        return null;
-    }
+        return Object.keys(map).length ? map : null;
+    } catch { return null; }
 }
 
-// Display media card
-async function displayMediaCard(item, options = {}) {
-    const { isTrending = false, container, contextId } = options;
-    const card = document.createElement('div');
-    card.className = 'movie-card';
-    
-    const title = item.title || item.name;
-    const releaseDate = item.release_date || item.first_air_date;
-    const year = releaseDate ? releaseDate.split('-')[0] : '';
-    const today = new Date();
-    const release = releaseDate ? new Date(releaseDate) : null;
-    const daysSinceRelease = release ? Math.floor((today - release) / (1000 * 60 * 60 * 24)) : null;
-    const isFuture = release ? release > today : false;
-    const isNew = daysSinceRelease !== null && daysSinceRelease >= 0 && daysSinceRelease <= 60;
-    // Show "In Theaters" for: future movies, movies released within 45 days, or movies releasing within 90 days
-    const isTheatrical = item.media_type === 'movie' && (
-        isFuture || 
-        (daysSinceRelease !== null && daysSinceRelease >= -90 && daysSinceRelease <= 45)
-    );
-    const posterPath = item.poster_path 
-        ? `${CONFIG.TMDB_IMAGE_BASE}${item.poster_path}`
-        : 'https://via.placeholder.com/500x750?text=No+Poster';
-    
-    // Get IMDb rating and additional details
-    const imdbRating = await getIMDbRating(title, year, item.media_type);
-    const details = await getMediaDetails(item.id, item.media_type);
-    
-    // Use TMDB rating as fallback if IMDb is not available
-    const rating = imdbRating || (item.vote_average ? item.vote_average.toFixed(1) : null);
-    
-    // Format runtime or episodes/seasons info
-    let durationInfo = '';
-    if (item.media_type === 'movie' && details.runtime) {
-        const hours = Math.floor(details.runtime / 60);
-        const mins = details.runtime % 60;
-        durationInfo = hours > 0 ? `${hours}h ${mins}m` : `${mins}m`;
-    } else if (item.media_type === 'tv') {
-        const seasons = details.number_of_seasons;
-        const episodes = details.number_of_episodes;
-        if (seasons && episodes) {
-            durationInfo = `${seasons} Season${seasons > 1 ? 's' : ''}, ${episodes} Episode${episodes > 1 ? 's' : ''}`;
-        } else if (seasons) {
-            durationInfo = `${seasons} Season${seasons > 1 ? 's' : ''}`;
-        }
-    }
-    
-    // Get language name from original_language
-    const languageCode = item.original_language || details.original_language;
-    const languageName = languageCode ? (LANGUAGE_NAMES[languageCode] || languageCode.toUpperCase()) : null;
-    
-    // Create basic card HTML
-    const streamContext = contextId || (isTrending ? 'trending' : 'search');
-
-    card.innerHTML = `
-        <img src="${posterPath}" alt="${title}" class="movie-poster" onerror="this.src='https://via.placeholder.com/500x750?text=No+Poster'">
-        <div class="movie-info">
-            <h3 class="movie-title" data-poster="${posterPath}">${title}</h3>
-            <div class="movie-meta">
-                <span class="meta-item">📅 ${year || 'N/A'}</span>
-                <span class="meta-item">🎬 ${item.media_type === 'tv' ? 'TV Show' : 'Movie'}</span>
-                ${languageName ? `<span class="meta-item">🌍 ${languageName}</span>` : ''}
-                ${durationInfo ? `<span class="meta-item">⏱️ ${durationInfo}</span>` : ''}
-                ${rating ? `<span class="imdb-rating">⭐ ${rating}</span>` : ''}
-            </div>
-            <div class="badge-row">
-                ${isNew ? '<span class="pill pill-new">New</span>' : ''}
-                ${isTheatrical ? '<span class="pill pill-theater">In Theaters</span>' : ''}
-            </div>
-            <p class="movie-overview">${item.overview || 'No description available.'}</p>
-            <div class="streaming-section" id="streaming-${item.id}-${streamContext}">
-                <div class="streaming-title">🌍 Available to Stream:</div>
-                <div class="loading-streaming">Checking availability...</div>
-            </div>
-            <div class="detail-actions">
-                <button class="view-btn" data-id="${item.id}" data-trending="${isTrending}">View details</button>
-            </div>
-        </div>
-    `;
-    
-    const targetContainer = container || (isTrending ? trendingContainer : resultsContainer);
-    targetContainer.appendChild(card);
-    card.querySelector('.view-btn').addEventListener('click', () => openDetailModal(item, { isTrending, isNew, isTheatrical, year, title, selectedCountry: countryFilter.value }));
-    
-    // Extract dominant color from poster and apply to card background
-    extractColorFromImage(posterPath, card);
-    
-    // Load streaming data asynchronously with real API
-    loadStreamingData(item, streamContext, { isNew, isTheatrical, year, title, selectedCountry: countryFilter.value, renderLimit: 2 });
-}
-
-// Extract dominant color from image
-function extractColorFromImage(imageUrl, cardElement) {
-    if (!imageUrl || imageUrl.includes('placeholder')) return;
-    
-    const img = new Image();
-    img.crossOrigin = 'Anonymous';
-    img.src = imageUrl;
-    
-    img.onload = function() {
-        try {
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d');
-            canvas.width = img.width;
-            canvas.height = img.height;
-            ctx.drawImage(img, 0, 0);
-            
-            // Sample colors from the top portion of the image
-            const imageData = ctx.getImageData(0, 0, canvas.width, Math.min(100, canvas.height));
-            const data = imageData.data;
-            
-            let r = 0, g = 0, b = 0, count = 0;
-            
-            // Average the colors, skipping very dark or very light pixels
-            for (let i = 0; i < data.length; i += 4 * 10) { // Sample every 10th pixel
-                const red = data[i];
-                const green = data[i + 1];
-                const blue = data[i + 2];
-                const brightness = (red + green + blue) / 3;
-                
-                // Skip very dark or very bright pixels
-                if (brightness > 30 && brightness < 225) {
-                    r += red;
-                    g += green;
-                    b += blue;
-                    count++;
-                }
-            }
-            
-            if (count > 0) {
-                r = Math.floor(r / count);
-                g = Math.floor(g / count);
-                b = Math.floor(b / count);
-                
-                // Apply gradient to the entire card
-                const color1 = `rgba(${r}, ${g}, ${b}, 0.2)`;
-                const color2 = `rgba(${Math.floor(r * 0.6)}, ${Math.floor(g * 0.6)}, ${Math.floor(b * 0.6)}, 0.4)`;
-                const darkColor = `rgba(${Math.floor(r * 0.3)}, ${Math.floor(g * 0.3)}, ${Math.floor(b * 0.3)}, 0.6)`;
-                
-                cardElement.style.background = `linear-gradient(135deg, ${darkColor} 0%, ${color2} 50%, ${color1} 100%)`;
-            }
-        } catch (e) {
-            console.log('Could not extract color from image:', e);
-        }
-    };
-    
-    img.onerror = function() {
-        console.log('Failed to load image for color extraction');
-    };
-}
-
-function renderPlatforms(container, platformsArray, selectedCountryLabel, options = {}) {
-    const { limit } = options;
-    const visiblePlatforms = limit ? platformsArray.slice(0, limit) : platformsArray;
-    const hiddenCount = limit ? Math.max(platformsArray.length - limit, 0) : 0;
-
-    const streamingContainerEl = document.createElement('div');
-    streamingContainerEl.classList.add('streaming-availability');
-
-    visiblePlatforms.forEach(platform => {
-        const platformRow = document.createElement('div');
-        platformRow.classList.add('platform-row');
-
-        // Create clickable platform name
-        const platformNameEl = document.createElement('span');
-        platformNameEl.classList.add('platform-name');
-        
-        const serviceUrl = SERVICE_URLS[platform.serviceName];
-        if (serviceUrl) {
-            const link = document.createElement('a');
-            link.href = serviceUrl;
-            link.target = '_blank';
-            link.rel = 'noopener noreferrer';
-            link.textContent = platform.serviceName;
-            link.classList.add('platform-link');
-            platformNameEl.appendChild(link);
-        } else {
-            platformNameEl.textContent = platform.serviceName;
-        }
-
-        const availabilityWrap = document.createElement('div');
-        availabilityWrap.classList.add('platform-countries-wrap');
-
-        const countries = platform.countries || [];
-        let inlineCountries = countries.slice(0, 4);
-        const remainingCountries = countries.slice(4);
-
-        const countriesSpan = document.createElement('span');
-        countriesSpan.classList.add('platform-countries');
-        if (countries.length === 0) {
-            countriesSpan.textContent = 'Not available in selected country';
-        } else if (selectedCountryLabel && countries.some(c => c.toLowerCase() === selectedCountryLabel.toLowerCase())) {
-            countriesSpan.textContent = `Available in ${selectedCountryLabel}`;
-        } else {
-            countriesSpan.textContent = `Available in ${inlineCountries.join(', ')}`;
-        }
-        availabilityWrap.appendChild(countriesSpan);
-
-        if (remainingCountries.length > 0) {
-            const details = document.createElement('details');
-            details.classList.add('platform-more');
-            const summary = document.createElement('summary');
-            summary.textContent = `+${remainingCountries.length} more countries`;
-            const extra = document.createElement('span');
-            extra.classList.add('platform-countries', 'extra');
-            extra.textContent = remainingCountries.join(', ');
-            details.appendChild(summary);
-            details.appendChild(extra);
-            availabilityWrap.appendChild(details);
-        }
-
-        if (platform.link) {
-            const link = document.createElement('a');
-            link.href = platform.link;
-            link.target = '_blank';
-            link.rel = 'noopener noreferrer';
-            link.classList.add('btn-outline');
-            link.textContent = 'Open platform';
-            availabilityWrap.appendChild(link);
-        }
-
-        platformRow.appendChild(platformNameEl);
-        platformRow.appendChild(availabilityWrap);
-        streamingContainerEl.appendChild(platformRow);
-    });
-
-    if (hiddenCount > 0) {
-        const moreNote = document.createElement('div');
-        moreNote.classList.add('platform-more-note');
-        moreNote.textContent = `+${hiddenCount} more. View details for the full list.`;
-        streamingContainerEl.appendChild(moreNote);
-    }
-
-    container.innerHTML = '';
-    container.appendChild(streamingContainerEl);
-}
-
-// Helper function to check if item is available on selected subscriptions
-async function checkSubscriptionMatch(item, selectedSubscriptions) {
-    if (!selectedSubscriptions || selectedSubscriptions.length === 0) return true;
-    
+async function getStreamingAvailability(item, meta = {}) {
     try {
-        const selectedCountry = countryFilter.value || 'us';
-        const platformData = await getTMDBProviders(item, selectedCountry);
-        
-        // Check if any platform matches selected subscriptions
-        for (const [serviceName, data] of Object.entries(platformData)) {
-            const normalizedService = serviceName.toLowerCase();
-            
-            // Check for matches (handle common variations)
-            const isMatch = selectedSubscriptions.some(sub => {
-                const normalizedSub = sub.toLowerCase();
-                return normalizedService.includes(normalizedSub) || 
-                       normalizedSub.includes(normalizedService) ||
-                       (normalizedSub === 'prime video' && normalizedService.includes('amazon')) ||
-                       (normalizedSub === 'disney plus' && normalizedService.includes('disney')) ||
-                       (normalizedSub === 'hbo max' && (normalizedService.includes('hbo') || normalizedService.includes('max'))) ||
-                       (normalizedSub === 'apple tv plus' && normalizedService.includes('apple'));
-            });
-            
-            if (isMatch) return true;
+        const type = item.media_type === 'tv' ? 'series' : 'movie';
+        const opts = { method:'GET', headers:{ 'X-RapidAPI-Key': CONFIG.STREAMING_API_KEY, 'X-RapidAPI-Host':'streaming-availability.p.rapidapi.com' } };
+        let res = await fetch(`${CONFIG.STREAM_BASE}/shows/${type}/${item.id}?source=tmdb`, opts);
+        if (!res.ok) res = await fetch(`${CONFIG.STREAM_BASE}/shows/${type}/${item.id}`, opts);
+        if (res.ok) { const d = await res.json(); if (d?.streamingOptions) return d; }
+        const title = meta.title || item.title || item.name || '';
+        const cc    = (meta.country || state.country).toLowerCase();
+        if (title) {
+            const r2 = await fetch(`${CONFIG.STREAM_BASE}/search/title/${encodeURIComponent(title)}?country=${cc}&show_type=${type}`, opts);
+            if (r2.ok) {
+                const sd = await r2.json();
+                const candidates = sd.result || sd.results || [];
+                return candidates.find(x => x.tmdbId === item.id) || candidates[0] || null;
+            }
         }
-        
-        return false;
-    } catch (error) {
-        console.error('Subscription check error:', error);
-        return true; // On error, show the item
-    }
+        return null;
+    } catch { return null; }
 }
 
 async function buildPlatformArray(item, meta = {}) {
-    const selectedCountry = (meta.selectedCountry || countryFilter.value || '').toLowerCase();
-    const selectedCountryLabel = selectedCountry ? getCountryLabel(selectedCountry) : '';
-    const selectedSubscriptions = meta.selectedSubscriptions || [];
+    const country      = (meta.country || state.country || '').toLowerCase();
+    const countryLabel = country ? getCountryLabel(country) : '';
 
-    let platformsByService = await getTMDBProviders(item, selectedCountry);
+    // countries are always stored as uppercase codes (e.g. "US", "GB") throughout
+    let byService = await getTMDBProviders(item, country);
 
-    const serviceNameMap = {
-        'netflix': 'Netflix',
-        'netflixbasic': 'Netflix',
-        'netflixwithads': 'Netflix',
-        'netflixads': 'Netflix',
-        'netflixstandardwithads': 'Netflix',
-        'prime': 'Amazon Prime Video',
-        'amazon': 'Amazon Prime Video',
-        'amazonprime': 'Amazon Prime Video',
-        'amazonprimevideo': 'Amazon Prime Video',
-        'primevideo': 'Amazon Prime Video',
-        'disney': 'Disney Plus',
-        'disneyplus': 'Disney Plus',
-        'disney+': 'Disney Plus',
-        'hulu': 'Hulu',
-        'hbo': 'HBO Max',
-        'hbomax': 'HBO Max',
-        'max': 'Max',
-        'paramount': 'Paramount Plus',
-        'paramountplus': 'Paramount Plus',
-        'paramount+': 'Paramount Plus',
-        'peacock': 'Peacock',
-        'apple': 'Apple TV Plus',
-        'appletv': 'Apple TV Plus',
-        'appletvplus': 'Apple TV Plus',
-        'appletv+': 'Apple TV Plus',
-        'britbox': 'BritBox',
-        'acorn': 'Acorn TV',
-        'acorntv': 'Acorn TV',
-        'discoveryplus': 'Discovery Plus',
-        'discovery+': 'Discovery Plus',
-        'criterion': 'Criterion Channel',
-        'criterionchannel': 'Criterion Channel',
-        'showtime': 'Showtime',
-        'starz': 'Starz',
-        'crave': 'Crave',
-        'canalplus': 'Canal+',
-        'canal+': 'Canal+',
-        'nowtv': 'NOW TV',
-        'now': 'NOW',
-        'nowmax': 'NOW',
-        'viaplay': 'Viaplay',
-        'wow': 'WOW',
-        'skygo': 'Sky Go',
-        'stan': 'Stan',
-        'hotstar': 'Disney Plus Hotstar',
-        'hotstarpremium': 'Disney Plus Hotstar',
-        'disneyhotstar': 'Disney Plus Hotstar',
-        'disney+hotstar': 'Disney Plus Hotstar',
-        'zee5': 'ZEE5',
-        'sonyliv': 'Sony LIV',
-        'voot': 'Voot',
-        'globoplay': 'Globoplay',
-        'showmax': 'Showmax',
-        'mubi': 'MUBI',
-        'crunchyroll': 'Crunchyroll',
-        'funimation': 'Funimation'
-    };
+    // hasCountry checks codes directly — no label conversion needed
+    const hasCountry = (map) => country && Object.values(map || {}).some(e =>
+        Array.from(e.countries).some(c => c.toLowerCase() === country.toLowerCase())
+    );
 
-        const buildFromStreamingOptions = (streamingOptions) => {
-            const map = {};
-            for (const [countryCode, services] of Object.entries(streamingOptions || {})) {
-                const countryLabel = getCountryLabel(countryCode);
-                for (const service of services || []) {
-                    const streamingType = service.type?.toLowerCase();
-                    if (streamingType === 'free' || streamingType === 'ads' || streamingType === 'rent' || streamingType === 'buy') continue;
-
-                    const serviceId = (service.service?.id || '').toLowerCase();
-                    let rawName = service.service?.name || service.service?.id || 'Unknown';
-                    let serviceName = normalizeServiceName(rawName, serviceNameMap);
-                    const serviceNameLower = serviceName.toLowerCase().replace(/[^a-z0-9]/g, '');
-                    if (serviceNameMap[serviceId]) serviceName = serviceNameMap[serviceId];
-                    else if (serviceNameMap[serviceNameLower]) serviceName = serviceNameMap[serviceNameLower];
-
-                    if (selectedCountry && countryCode.toLowerCase() !== selectedCountry) continue;
-
-                    if (!map[serviceName]) {
-                        map[serviceName] = {
-                            type: 'subscription',
-                            countries: new Set(),
-                            link: service.link || ''
-                        };
-                    }
-                    const isVariant = serviceName !== rawName;
-                    const label = isVariant ? `${countryLabel}*` : countryLabel;
-                    map[serviceName].countries.add(label);
+    if (!byService || (country && !hasCountry(byService))) {
+        const sd = await getStreamingAvailability(item, { ...meta, country });
+        const opts = sd?.streamingOptions || sd?.result?.streamingOptions;
+        if (opts) {
+            const rapid = {};
+            for (const [cc, services] of Object.entries(opts)) {
+                for (const svc of services || []) {
+                    const t = svc.type?.toLowerCase();
+                    if (t === 'free' || t === 'ads' || t === 'rent' || t === 'buy') continue;
+                    if (country && cc.toLowerCase() !== country) continue;
+                    const id = (svc.service?.id || '').toLowerCase();
+                    const sn = SERVICE_NAME_MAP[id] || normalizeServiceName(svc.service?.name || id);
+                    if (!rapid[sn]) rapid[sn] = { type:'subscription', countries: new Set(), link: svc.link || '' };
+                    rapid[sn].countries.add(cc.toUpperCase()); // store code, not label
                 }
             }
-            return map;
-        };
-
-    const hasSelectedCountry = (map) => {
-        if (!selectedCountry) return false;
-        return Object.values(map || {}).some(entry => {
-            return Array.from(entry.countries || []).some(cc => cc.toLowerCase().includes(selectedCountry));
-        });
-    };
-
-    if (platformsByService) {
-        for (const serviceName of Object.keys(platformsByService)) {
-            const entry = platformsByService[serviceName];
-            const normalized = new Set();
-            (entry.countries || []).forEach(cc => {
-                normalized.add(getCountryLabel(cc));
-            });
-            entry.countries = normalized;
-        }
-    }
-
-    if (!platformsByService || (selectedCountry && !hasSelectedCountry(platformsByService))) {
-        const streamingData = await getStreamingAvailability(item, meta);
-        const streamingOptions = streamingData?.streamingOptions
-            || streamingData?.result?.streamingOptions
-            || streamingData?.streamingInfo
-            || streamingData?.result?.streamingInfo;
-
-        if (streamingOptions) {
-            console.log('Processing streaming options from RapidAPI:', JSON.stringify(streamingOptions, null, 2));
-            const rapidMap = buildFromStreamingOptions(streamingOptions);
-            platformsByService = platformsByService || {};
-            for (const [serviceName, data] of Object.entries(rapidMap)) {
-                if (!platformsByService[serviceName]) {
-                    platformsByService[serviceName] = data;
-                } else {
-                    data.countries.forEach(c => platformsByService[serviceName].countries.add(c));
-                    if (!platformsByService[serviceName].link && data.link) {
-                        platformsByService[serviceName].link = data.link;
-                    }
-                }
+            byService = byService || {};
+            for (const [sn, d] of Object.entries(rapid)) {
+                if (!byService[sn]) byService[sn] = d;
+                else { d.countries.forEach(c => byService[sn].countries.add(c)); }
             }
         }
     }
 
-    if (!platformsByService || Object.keys(platformsByService).length === 0) {
-        return { platformsArray: [], selectedCountryLabel };
+    if (!byService || !Object.keys(byService).length) return { platforms: [], countryLabel };
+
+    const merged = {};
+    for (const [name, data] of Object.entries(byService)) {
+        const key = name
+            .replace(/Disney\s*Plus/i,'Disney Plus')
+            .replace(/Paramount\s*Plus/i,'Paramount Plus')
+            .replace(/Apple\s*TV\s*Plus/i,'Apple TV Plus')
+            .replace(/Discovery\s*Plus/i,'Discovery Plus')
+            .replace(/Amazon\s*Prime(\s*Video)?/i,'Amazon Prime Video');
+        if (!merged[key]) merged[key] = { type:data.type, countries: new Set(data.countries), link:data.link, logo:data.logo };
+        else { data.countries.forEach(c => merged[key].countries.add(c)); if (!merged[key].link && data.link) merged[key].link = data.link; }
     }
 
-    // Merge duplicate services with different naming (e.g., "Disney Plus" and "Disney+")
-    const mergedPlatforms = {};
-    for (const [serviceName, data] of Object.entries(platformsByService)) {
-        // Normalize the service name for merging
-        const normalizedKey = serviceName
-            .replace(/\s+Plus$/i, ' Plus')
-            .replace(/\+$/,  ' Plus')
-            .replace(/Disney\s*Plus/i, 'Disney Plus')
-            .replace(/Paramount\s*Plus/i, 'Paramount Plus')
-            .replace(/Apple\s*TV\s*Plus/i, 'Apple TV Plus')
-            .replace(/Discovery\s*Plus/i, 'Discovery Plus')
-            .replace(/Amazon\s*Prime(\s*Video)?/i, 'Amazon Prime Video');
-        
-        if (!mergedPlatforms[normalizedKey]) {
-            mergedPlatforms[normalizedKey] = {
-                type: data.type,
-                countries: new Set(data.countries),
-                link: data.link
-            };
-        } else {
-            // Merge countries
-            data.countries.forEach(c => mergedPlatforms[normalizedKey].countries.add(c));
-            // Keep link if we don't have one
-            if (!mergedPlatforms[normalizedKey].link && data.link) {
-                mergedPlatforms[normalizedKey].link = data.link;
-            }
-        }
-    }
-
-    const platformsArray = Object.entries(mergedPlatforms)
-        .map(([serviceName, data]) => ({
-            serviceName,
-            type: data.type,
-            countries: sortCountries(Array.from(data.countries)),
-            link: data.link
-        }))
-        .sort((a, b) => {
-            const pa = servicePriorityWeight(a.serviceName);
-            const pb = servicePriorityWeight(b.serviceName);
-            if (pa !== pb) return pa - pb;
-            return a.serviceName.localeCompare(b.serviceName);
-        })
-        .filter(platform => {
-            // Filter by selected subscriptions if any are selected
-            if (!selectedSubscriptions || selectedSubscriptions.length === 0) return true;
-            
-            const normalizedService = platform.serviceName.toLowerCase();
-            return selectedSubscriptions.some(sub => {
-                const normalizedSub = sub.toLowerCase();
-                return normalizedService.includes(normalizedSub) || 
-                       normalizedSub.includes(normalizedService) ||
-                       (normalizedSub === 'amazon prime video' && normalizedService.includes('amazon')) ||
-                       (normalizedSub === 'prime video' && normalizedService.includes('amazon')) ||
-                       (normalizedSub === 'disney plus' && normalizedService.includes('disney')) ||
-                       (normalizedSub === 'hbo max' && (normalizedService.includes('hbo') || normalizedService.includes('max'))) ||
-                       (normalizedSub === 'apple tv plus' && normalizedService.includes('apple'));
-            });
+    const platforms = Object.entries(merged)
+        .map(([name, d]) => ({ name, type:d.type, countries: sortCountries(Array.from(d.countries)), link:d.link, logo:d.logo }))
+        .sort((a,b) => servicePriWeight(a.name) - servicePriWeight(b.name) || a.name.localeCompare(b.name))
+        .filter(p => {
+            if (!meta.service) return true;
+            const n = p.name.toLowerCase(), s = meta.service.toLowerCase();
+            return n.includes(s) || s.includes(n);
         });
 
-    return { platformsArray, selectedCountryLabel };
+    return { platforms, countryLabel };
 }
 
-// Load streaming data using real API
-async function loadStreamingData(item, contextId = 'search', meta = {}) {
-    const streamingContainer = document.getElementById(`streaming-${item.id}-${contextId}`);
-    const loadingText = streamingContainer?.querySelector('.loading-streaming');
-    if (!loadingText) return;
+// ── Data loaders ──────────────────────────────────────────────
+const tag = (type) => (x) => ({ ...x, media_type: type });
+const tagResults = (type) => (d) => (d.results || []).slice(0,20).map(tag(type));
+
+// Home
+const loadTrending = async () => {
+    const today = new Date(), ts = d => d.toISOString().split('T')[0];
+    const p90 = ts(new Date(today - 90*864e5)), f45 = ts(new Date(+today + 45*864e5)), p60 = ts(new Date(today - 60*864e5));
+    const [mov, tv] = await Promise.all([
+        fetchTMDB('/discover/movie',{ 'primary_release_date.gte':p90,'primary_release_date.lte':f45, sort_by:'popularity.desc', region:'US', with_original_language:'en' }),
+        fetchTMDB('/discover/tv',   { 'air_date.gte':p60,'air_date.lte':ts(today), sort_by:'popularity.desc', with_original_language:'en' })
+    ]);
+    return [
+        ...mov.results.slice(0,8).map(tag('movie')),
+        ...tv.results.slice(0,6).map(tag('tv'))
+    ].sort((a,b)=>b.popularity-a.popularity).slice(0,14);
+};
+
+// Movies
+const loadNowPlaying   = () => fetchTMDB('/movie/now_playing',{ region:'US' }).then(tagResults('movie'));
+const loadTopMovies    = () => fetchTMDB('/discover/movie',{ sort_by:'vote_average.desc','vote_count.gte':1000, without_genres:'16', with_original_language:'en' }).then(tagResults('movie'));
+const loadMovieGenre   = (id) => () => fetchTMDB('/discover/movie',{ with_genres:id, sort_by:'popularity.desc','vote_count.gte':80 }).then(tagResults('movie'));
+
+// TV Shows
+const loadTopShows     = () => fetchTMDB('/discover/tv',{ sort_by:'vote_average.desc','vote_count.gte':500, without_genres:'16,99', with_original_language:'en' }).then(tagResults('tv'));
+const loadShowGenre    = (...ids) => () => fetchTMDB('/discover/tv',{ with_genres:ids.join(','), sort_by:'popularity.desc','vote_count.gte':50, with_original_language:'en' }).then(tagResults('tv'));
+const loadDocs         = () => fetchTMDB('/discover/tv',{ sort_by:'vote_average.desc','vote_count.gte':100, with_genres:'99', with_original_language:'en' }).then(tagResults('tv'));
+const loadKids         = () => fetchTMDB('/discover/movie',{ sort_by:'popularity.desc', certification_country:'US','certification.lte':'PG', with_genres:'16,10751', with_original_language:'en' }).then(tagResults('movie'));
+const loadKidsTV       = () => fetchTMDB('/discover/tv',  { sort_by:'popularity.desc', with_genres:'10762,10751', with_original_language:'en' }).then(tagResults('tv'));
+
+// Anime
+const loadAnime        = () => fetchTMDB('/discover/tv',{ sort_by:'popularity.desc', with_genres:'16', with_original_language:'ja' }).then(tagResults('tv'));
+const loadTopAnime     = () => fetchTMDB('/discover/tv',{ sort_by:'vote_average.desc','vote_count.gte':200, with_genres:'16', with_original_language:'ja' }).then(tagResults('tv'));
+const loadAnimeGenre   = (...ids) => () => fetchTMDB('/discover/tv',{ with_genres:['16',...ids].join(','), with_original_language:'ja', sort_by:'popularity.desc' }).then(tagResults('tv'));
+
+// International
+const loadByLang       = (lang, type) => () => fetchTMDB(`/discover/${type}`,{ with_original_language:lang, sort_by:'popularity.desc','vote_count.gte':100 }).then(tagResults(type));
+
+const loadInternational = async () => {
+    const langs = ['ko','fr','es','de','it','zh','hi','ja'];
+    const all = await Promise.all(langs.map(l => fetchTMDB('/discover/movie',{ sort_by:'popularity.desc','vote_count.gte':200, with_original_language:l })));
+    return all.flatMap(r=>r.results.slice(0,3)).sort((a,b)=>b.popularity-a.popularity).slice(0,20).map(tag('movie'));
+};
+
+// Home extras
+const loadPopularTV = () => fetchTMDB('/trending/tv/week').then(tagResults('tv'));
+
+const loadNewStreaming = async () => {
+    const today = new Date(), ts = d => d.toISOString().split('T')[0];
+    const p120 = ts(new Date(today - 120*864e5)), p10 = ts(new Date(today - 10*864e5));
+    const d = await fetchTMDB('/discover/movie',{
+        'primary_release_date.gte': p120, 'primary_release_date.lte': p10,
+        sort_by: 'popularity.desc', with_original_language: 'en', 'vote_count.gte': 20
+    });
+    return (d.results || []).slice(0, 20).map(tag('movie'));
+};
+
+const loadHiddenGems = async () => {
+    const [mov, tv] = await Promise.all([
+        fetchTMDB('/discover/movie',{ sort_by:'vote_average.desc','vote_count.gte':150,'vote_count.lte':1500,'vote_average.gte':7.5, with_original_language:'en', without_genres:'99' }),
+        fetchTMDB('/discover/tv',   { sort_by:'vote_average.desc','vote_count.gte':100,'vote_count.lte':800, 'vote_average.gte':7.8, with_original_language:'en', without_genres:'99' })
+    ]);
+    return [
+        ...(mov.results||[]).slice(0,8).map(tag('movie')),
+        ...(tv.results||[]).slice(0,6).map(tag('tv'))
+    ].sort((a,b) => b.vote_average - a.vote_average).slice(0,14);
+};
+
+const loadActionMix = async () => {
+    const [mov, tv] = await Promise.all([
+        fetchTMDB('/discover/movie',{ with_genres:'28',    sort_by:'popularity.desc','vote_count.gte':200, with_original_language:'en' }),
+        fetchTMDB('/discover/tv',   { with_genres:'10759', sort_by:'popularity.desc','vote_count.gte':100, with_original_language:'en' })
+    ]);
+    return [
+        ...(mov.results||[]).slice(0,8).map(tag('movie')),
+        ...(tv.results||[]).slice(0,6).map(tag('tv'))
+    ].sort((a,b) => b.popularity - a.popularity).slice(0,14);
+};
+
+const loadComedyMix = async () => {
+    const [mov, tv] = await Promise.all([
+        fetchTMDB('/discover/movie',{ with_genres:'35', sort_by:'popularity.desc','vote_count.gte':200, with_original_language:'en' }),
+        fetchTMDB('/discover/tv',   { with_genres:'35', sort_by:'popularity.desc','vote_count.gte':100, with_original_language:'en' })
+    ]);
+    return [
+        ...(mov.results||[]).slice(0,8).map(tag('movie')),
+        ...(tv.results||[]).slice(0,6).map(tag('tv'))
+    ].sort((a,b) => b.popularity - a.popularity).slice(0,14);
+};
+
+const loadSciFiMix = async () => {
+    const [mov, tv] = await Promise.all([
+        fetchTMDB('/discover/movie',{ with_genres:'878',   sort_by:'popularity.desc','vote_count.gte':200, with_original_language:'en' }),
+        fetchTMDB('/discover/tv',   { with_genres:'10765', sort_by:'popularity.desc','vote_count.gte':100, with_original_language:'en' })
+    ]);
+    return [
+        ...(mov.results||[]).slice(0,8).map(tag('movie')),
+        ...(tv.results||[]).slice(0,6).map(tag('tv'))
+    ].sort((a,b) => b.popularity - a.popularity).slice(0,14);
+};
+
+const loadCriticallyAcclaimed = async () => {
+    const [mov, tv] = await Promise.all([
+        fetchTMDB('/discover/movie',{ sort_by:'vote_average.desc','vote_count.gte':3000,'vote_average.gte':8.0, with_original_language:'en', without_genres:'99,16' }),
+        fetchTMDB('/discover/tv',   { sort_by:'vote_average.desc','vote_count.gte':1000,'vote_average.gte':8.2, with_original_language:'en', without_genres:'99,16' })
+    ]);
+    return [
+        ...(mov.results||[]).slice(0,8).map(tag('movie')),
+        ...(tv.results||[]).slice(0,6).map(tag('tv'))
+    ].sort((a,b) => b.vote_average - a.vote_average).slice(0,14);
+};
+
+// ── Page definitions ──────────────────────────────────────────
+const PAGES = {
+    home: {
+        eyebrow: 'Trending Now',
+        heroLoader: () => fetchTMDB('/trending/all/week'),
+        rows: [
+            { id:'trending',       title:'Trending Now',           loader: loadTrending },
+            { id:'in-theaters',    title:'Now in Theaters',        loader: loadNowPlaying },
+            { id:'new-streaming',  title:'New on Streaming',       loader: loadNewStreaming },
+            { id:'popular-tv',     title:'Popular TV Shows',       loader: loadPopularTV },
+            { id:'acclaimed',      title:'Critically Acclaimed',   loader: loadCriticallyAcclaimed },
+            { id:'top-movies',     title:'Top Rated Movies',       loader: loadTopMovies },
+            { id:'action-mix',     title:'Action & Adventure',     loader: loadActionMix },
+            { id:'hidden-gems',    title:'Hidden Gems',            loader: loadHiddenGems },
+            { id:'scifi-mix',      title:'Sci-Fi & Fantasy',       loader: loadSciFiMix },
+            { id:'comedy-mix',     title:'Comedy',                 loader: loadComedyMix },
+            { id:'top-shows',      title:'Top Rated TV Shows',     loader: loadTopShows },
+            { id:'docs',           title:'Documentaries',          loader: loadDocs },
+            { id:'anime',          title:'Anime Spotlight',        loader: loadAnime },
+            { id:'international',  title:'International Hits',     loader: loadInternational },
+            { id:'kids',           title:'Kids & Family',          loader: loadKids },
+        ]
+    },
+    movies: {
+        eyebrow: 'Featured Film',
+        heroLoader: async () => { const d = await fetchTMDB('/trending/movie/week'); return { results: d.results.map(tag('movie')) }; },
+        rows: [
+            { id:'m-theaters',  title:'Now in Theaters',     loader: loadNowPlaying },
+            { id:'m-top',       title:'Top Rated',           loader: loadTopMovies },
+            { id:'m-action',    title:'Action & Adventure',  loader: loadMovieGenre(28) },
+            { id:'m-comedy',    title:'Comedy',              loader: loadMovieGenre(35) },
+            { id:'m-drama',     title:'Drama',               loader: loadMovieGenre(18) },
+            { id:'m-scifi',     title:'Science Fiction',     loader: loadMovieGenre(878) },
+            { id:'m-thriller',  title:'Thriller',            loader: loadMovieGenre(53) },
+            { id:'m-horror',    title:'Horror',              loader: loadMovieGenre(27) },
+            { id:'m-animation', title:'Animation',           loader: loadMovieGenre(16) },
+            { id:'m-romance',   title:'Romance',             loader: loadMovieGenre(10749) },
+            { id:'m-history',   title:'History & War',       loader: loadMovieGenre(36) },
+        ]
+    },
+    shows: {
+        eyebrow: 'Featured Series',
+        heroLoader: async () => { const d = await fetchTMDB('/trending/tv/week'); return { results: d.results.map(tag('tv')) }; },
+        rows: [
+            { id:'tv-top',      title:'Top Rated',           loader: loadTopShows },
+            { id:'tv-crime',    title:'Crime & Mystery',     loader: loadShowGenre(80, 9648) },
+            { id:'tv-drama',    title:'Drama',               loader: loadShowGenre(18) },
+            { id:'tv-comedy',   title:'Comedy',              loader: loadShowGenre(35) },
+            { id:'tv-scifi',    title:'Sci-Fi & Fantasy',    loader: loadShowGenre(10765) },
+            { id:'tv-action',   title:'Action & Adventure',  loader: loadShowGenre(10759) },
+            { id:'tv-reality',  title:'Reality',             loader: loadShowGenre(10764) },
+            { id:'tv-docs',     title:'Documentaries',       loader: loadDocs },
+            { id:'tv-kids',     title:'Kids & Family',       loader: loadKidsTV },
+        ]
+    },
+    anime: {
+        eyebrow: 'Featured Anime',
+        heroLoader: async () => { const d = await fetchTMDB('/discover/tv',{ with_genres:'16', with_original_language:'ja', sort_by:'popularity.desc' }); return { results: d.results.map(tag('tv')) }; },
+        rows: [
+            { id:'a-trending', title:'Popular Right Now',   loader: loadAnime },
+            { id:'a-top',      title:'Top Rated',           loader: loadTopAnime },
+            { id:'a-action',   title:'Action',              loader: loadAnimeGenre(10759) },
+            { id:'a-drama',    title:'Drama',               loader: loadAnimeGenre(18) },
+            { id:'a-fantasy',  title:'Fantasy & Sci-Fi',    loader: loadAnimeGenre(10765) },
+            { id:'a-comedy',   title:'Comedy',              loader: loadAnimeGenre(35) },
+        ]
+    },
+    international: {
+        eyebrow: 'World Cinema',
+        heroLoader: async () => {
+            const d = await fetchTMDB('/trending/movie/week');
+            return { results: d.results.filter(x => x.original_language !== 'en').map(tag('movie')) };
+        },
+        rows: [
+            { id:'i-kr-m',  title:'Korean Movies',         loader: loadByLang('ko','movie') },
+            { id:'i-kr-tv', title:'Korean TV',             loader: loadByLang('ko','tv') },
+            { id:'i-ja-m',  title:'Japanese',              loader: loadByLang('ja','movie') },
+            { id:'i-es',    title:'Spanish Language',      loader: loadByLang('es','movie') },
+            { id:'i-fr',    title:'French Cinema',         loader: loadByLang('fr','movie') },
+            { id:'i-hi',    title:'Indian Cinema',         loader: loadByLang('hi','movie') },
+            { id:'i-de',    title:'German',                loader: loadByLang('de','movie') },
+            { id:'i-it',    title:'Italian',               loader: loadByLang('it','movie') },
+            { id:'i-zh',    title:'Chinese',               loader: loadByLang('zh','movie') },
+        ]
+    }
+};
+
+// ── Card factory ──────────────────────────────────────────────
+function makeCard(item) {
+    const type    = item.media_type || (item.title ? 'movie' : 'tv');
+    const title   = item.title || item.name || 'Unknown';
+    const year    = (item.release_date || item.first_air_date || '').slice(0,4);
+    const rating  = item.vote_average ? item.vote_average.toFixed(1) : null;
+    const poster  = item.poster_path ? `${CONFIG.TMDB_IMG}/w342${item.poster_path}` : null;
+    const overview = item.overview ? (item.overview.length > 95 ? item.overview.slice(0,92) + '…' : item.overview) : '';
+
+    const daysOld      = item.release_date ? (Date.now() - new Date(item.release_date)) / 86400000 : Infinity;
+    const isNew        = daysOld >= 0 && daysOld <= 60;
+    const isTheatrical = type === 'movie' && daysOld >= -90 && daysOld <= 45;
+
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.innerHTML = `
+        <div class="card-poster">
+            ${poster
+                ? `<img src="${poster}" alt="${title}" loading="lazy" onerror="this.style.display='none'">`
+                : `<div class="card-poster-none"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/></svg></div>`}
+            ${rating ? `<div class="card-rating">★ ${rating}</div>` : ''}
+            ${isNew ? '<div class="card-badge new">New</div>' : ''}
+            ${isTheatrical && !isNew ? '<div class="card-badge theaters">In Theaters</div>' : ''}
+            <div class="card-hover">
+                ${overview ? `<div class="card-hover-overview">${overview}</div>` : ''}
+                <div class="card-hover-meta">
+                    ${rating ? `<span>★ ${rating}</span>` : ''}
+                    ${year ? `<span>${year}</span>` : ''}
+                    <span>${type === 'movie' ? 'Movie' : 'TV'}</span>
+                </div>
+            </div>
+        </div>
+        <div class="card-foot">
+            <div class="card-name">${title}</div>
+            ${year ? `<div class="card-year">${year}</div>` : ''}
+        </div>`;
+    card.addEventListener('click', () => openModal(item.id, type, item));
+    return card;
+}
+
+function makeSkeletonCard() {
+    const d = document.createElement('div');
+    d.className = 'skel-card';
+    d.innerHTML = '<div class="skel skel-poster"></div><div class="skel skel-line"></div><div class="skel skel-line2"></div>';
+    return d;
+}
+
+// ── Row factory ───────────────────────────────────────────────
+function makeRow(id, title, loader) {
+    const row = document.createElement('div');
+    row.className = 'row'; row.id = id;
+    row.innerHTML = `
+        <div class="row-head"><h2 class="row-title">${title}</h2></div>
+        <div class="row-wrap">
+            <button class="row-arrow row-arrow-l" aria-label="Scroll left">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m15 18-6-6 6-6"/></svg>
+            </button>
+            <div class="row-track" id="track-${id}"></div>
+            <button class="row-arrow row-arrow-r" aria-label="Scroll right">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m9 18 6-6-6-6"/></svg>
+            </button>
+        </div>`;
+
+    const track = row.querySelector('.row-track');
+    for (let i = 0; i < 10; i++) track.appendChild(makeSkeletonCard());
+
+    row.querySelector('.row-arrow-l').addEventListener('click', () => track.scrollBy({ left:-620, behavior:'smooth' }));
+    row.querySelector('.row-arrow-r').addEventListener('click', () => track.scrollBy({ left: 620, behavior:'smooth' }));
+
+    loader().then(items => {
+        track.innerHTML = '';
+        if (!items.length) { track.innerHTML = '<div class="empty-row">Nothing to show here</div>'; return; }
+        items.forEach(item => track.appendChild(makeCard(item)));
+    }).catch(() => { track.innerHTML = '<div class="empty-row">Could not load content</div>'; });
+
+    return row;
+}
+
+// ── Page navigation ───────────────────────────────────────────
+async function navigatePage(pageId) {
+    if (pageId === state.currentPage && document.getElementById('rows').children.length > 0) {
+        window.scrollTo({ top: 0, behavior: 'smooth' }); return;
+    }
+    state.currentPage = pageId;
+
+    document.querySelectorAll('.nav-link[data-page], .mobile-nav-link[data-page]').forEach(l =>
+        l.classList.toggle('active', l.dataset.page === pageId)
+    );
+
+    window.scrollTo({ top: 0, behavior: 'instant' });
+
+    // Fade out existing rows
+    const container = document.getElementById('rows');
+    container.classList.add('fade-out');
+
+    // Load hero and rows in parallel, but wait at least one tick for the fade to register
+    await new Promise(r => setTimeout(r, 250));
+
+    container.innerHTML = '';
+    container.classList.remove('fade-out');
+
+    const page = PAGES[pageId];
+    page.rows.forEach(({ id, title, loader }) => container.appendChild(makeRow(id, title, loader)));
+
+    loadHeroForPage(pageId);
+}
+
+// ── Hero ──────────────────────────────────────────────────────
+async function loadHeroForPage(pageId) {
+    clearInterval(state.heroTimer);
+    const page = PAGES[pageId];
+    try {
+        const data = await page.heroLoader();
+        const items = (data.results || []).filter(x => x.backdrop_path).slice(0, 5);
+        state.heroItems = items;
+        state.heroIdx   = 0;
+        if (!items.length) return;
+        renderHeroSlide(0);
+        buildHeroDots();
+        if (items.length > 1) {
+            state.heroTimer = setInterval(() => renderHeroSlide((state.heroIdx + 1) % state.heroItems.length), 7000);
+        }
+    } catch(e) { console.warn('Hero load failed:', e); }
+}
+
+function renderHeroSlide(idx) {
+    state.heroIdx = idx;
+    const item   = state.heroItems[idx];
+    const title  = item.title || item.name || '';
+    const year   = (item.release_date || item.first_air_date || '').slice(0,4);
+    const rating = item.vote_average ? item.vote_average.toFixed(1) : null;
+    const type   = item.media_type === 'movie' ? 'Movie' : 'TV Show';
+
+    const img = document.getElementById('heroImg');
+    img.style.opacity = '0';
+    img.src = `${CONFIG.TMDB_IMG}/w1280${item.backdrop_path}`;
+    img.onload = () => { img.style.opacity = '1'; };
+
+    document.getElementById('heroTitle').textContent    = title;
+    document.getElementById('heroOverview').textContent = item.overview || '';
+    document.getElementById('heroMeta').innerHTML =
+        (rating ? `<span class="hero-star">★ ${rating}</span>` : '') +
+        (year   ? `<span>${year}</span>` : '') +
+        `<span class="hero-pill">${type}</span>`;
+
+    const eyebrow = document.querySelector('.hero-eyebrow');
+    if (eyebrow) eyebrow.textContent = PAGES[state.currentPage]?.eyebrow || 'Trending Now';
+
+    document.getElementById('heroInfoBtn').onclick = () => openModal(item.id, item.media_type, item);
+    document.querySelectorAll('.hero-dot').forEach((d,i) => d.classList.toggle('active', i === idx));
+}
+
+function buildHeroDots() {
+    const wrap = document.getElementById('heroDots');
+    wrap.innerHTML = '';
+    state.heroItems.forEach((_, i) => {
+        const b = document.createElement('button');
+        b.className = 'hero-dot' + (i === 0 ? ' active' : '');
+        b.addEventListener('click', () => { clearInterval(state.heroTimer); renderHeroSlide(i); });
+        wrap.appendChild(b);
+    });
+}
+
+// ── Search ────────────────────────────────────────────────────
+function initSearch() {
+    const input    = document.getElementById('searchInput');
+    const clearBtn = document.getElementById('searchClear');
+
+    document.getElementById('searchBtn').addEventListener('click', openSearch);
+    document.getElementById('searchCancel').addEventListener('click', closeSearch);
+
+    input.addEventListener('input', () => {
+        clearBtn.classList.toggle('visible', input.value.length > 0);
+        clearTimeout(state.searchTimer);
+        state.searchTimer = setTimeout(doSearch, 380);
+    });
+
+    clearBtn.addEventListener('click', () => {
+        input.value = '';
+        clearBtn.classList.remove('visible');
+        document.getElementById('searchGrid').innerHTML = '';
+        document.getElementById('searchHint').style.display = 'flex';
+    });
+
+    document.querySelectorAll('#typeChips .chip').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('#typeChips .chip').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            state.searchType = btn.dataset.type;
+            if (input.value.trim().length > 1) doSearch();
+        });
+    });
+
+    const serviceSelect = document.getElementById('serviceSelect');
+    if (serviceSelect) {
+        serviceSelect.addEventListener('change', () => {
+            state.searchService = serviceSelect.value || null;
+            if (input.value.trim().length > 1) doSearch();
+        });
+    }
+
+    document.addEventListener('keydown', e => {
+        if (e.key === 'Escape') {
+            if (document.getElementById('svcBg').classList.contains('open')) closeSvcOverlay();
+            else if (document.getElementById('modalBg').classList.contains('open')) closeModal();
+            else if (document.getElementById('searchOverlay').classList.contains('open')) closeSearch();
+            else if (document.getElementById('mobileMenu').classList.contains('open')) closeMobileMenu();
+        }
+    });
+}
+
+function openSearch() {
+    document.getElementById('searchOverlay').classList.add('open');
+    document.body.style.overflow = 'hidden';
+    setTimeout(() => document.getElementById('searchInput').focus(), 80);
+}
+
+function closeSearch() {
+    document.getElementById('searchOverlay').classList.remove('open');
+    document.body.style.overflow = '';
+}
+
+async function doSearch() {
+    const query = document.getElementById('searchInput').value.trim();
+    const grid  = document.getElementById('searchGrid');
+    const hint  = document.getElementById('searchHint');
+
+    if (query.length < 2) { grid.innerHTML = ''; hint.style.display = 'flex'; return; }
+    hint.style.display = 'none';
+    grid.innerHTML = '<div class="spinner-wrap"><div class="spinner"></div></div>';
 
     try {
-        // Get selected subscriptions
-        const selectedSubscriptions = Array.from(document.querySelectorAll('input[name="subscription"]:checked'))
-            .map(input => input.value.toLowerCase());
-        
-        const { platformsArray, selectedCountryLabel } = await buildPlatformArray(item, { ...meta, selectedSubscriptions });
+        let results = [];
+        if (state.searchType === 'all' || state.searchType === 'movie') {
+            const d = await fetchTMDB('/search/movie', { query });
+            results.push(...d.results.map(x => ({ ...x, media_type:'movie' })));
+        }
+        if (state.searchType === 'all' || state.searchType === 'tv') {
+            const d = await fetchTMDB('/search/tv', { query });
+            results.push(...d.results.map(x => ({ ...x, media_type:'tv' })));
+        }
+        results.sort((a,b) => b.popularity - a.popularity);
 
-        if (!platformsArray || platformsArray.length === 0) {
-            const message = selectedCountryLabel
-                ? `Not available in ${selectedCountryLabel}.`
-                : (meta.isTheatrical ? 'In theaters now. Streaming not yet available.' : 'Not currently available on subscription platforms.');
-            loadingText.outerHTML = `<div class="no-streaming">${message}</div>`;
-            return;
+        if (state.searchService) {
+            const svcLow = state.searchService.toLowerCase();
+            const checked = [];
+            for (const item of results.slice(0,30)) {
+                const providers = await getTMDBProviders(item, state.country);
+                if (providers && Object.keys(providers).some(n => n.toLowerCase().includes(svcLow) || svcLow.includes(n.toLowerCase()))) {
+                    checked.push(item);
+                    if (checked.length >= 20) break;
+                }
+            }
+            results = checked;
         }
 
-        streamingCache[item.id] = platformsArray;
-        renderPlatforms(streamingContainer, platformsArray, selectedCountryLabel, { limit: meta.renderLimit });
-    } catch (error) {
-        console.error('Error loading streaming data:', error);
-        loadingText.outerHTML = '<div class="no-streaming">Unable to load streaming data.</div>';
+        grid.innerHTML = '';
+        if (!results.length) { grid.innerHTML = '<div class="empty-row" style="grid-column:1/-1">No results found</div>'; return; }
+        results.slice(0, 40).forEach(item => grid.appendChild(makeCard(item)));
+    } catch {
+        grid.innerHTML = '<div class="empty-row" style="grid-column:1/-1">Search failed — try again</div>';
     }
+}
+
+// ── Service overlay ───────────────────────────────────────────
+function openSvcOverlay(p) {
+    const url = p.link || SERVICE_URLS[p.name] || null;
+
+    // Header
+    const header = document.getElementById('svcHeader');
+    const logoEl = p.logo
+        ? `<img class="svc-logo" src="${CONFIG.TMDB_IMG}/w92${p.logo}" alt="" onerror="this.outerHTML='<div class=svc-abbr>${p.name.slice(0,3).toUpperCase()}</div>'">`
+        : `<div class="svc-abbr">${p.name.slice(0,3).toUpperCase()}</div>`;
+    const n = p.countries ? p.countries.length : 0;
+    header.innerHTML = `${logoEl}<div><div class="svc-name">${p.name}</div><div class="svc-count">${n} ${n === 1 ? 'country' : 'countries'}</div></div>`;
+
+    // Country chips — code + full name
+    const wrap = document.getElementById('svcCountries');
+    wrap.innerHTML = '';
+    (p.countries || []).forEach(code => {
+        const name = COUNTRY_NAMES[code.toLowerCase()];
+        if (!name) return; // skip codes we can't resolve to a proper name
+        const chip = document.createElement('div');
+        chip.className = 'svc-country-chip';
+        chip.textContent = name;
+        wrap.appendChild(chip);
+    });
+    // Update count to reflect only named countries
+    const namedCount = (p.countries || []).filter(c => COUNTRY_NAMES[c.toLowerCase()]).length;
+    const countEl = document.querySelector('#svcHeader .svc-count');
+    if (countEl) countEl.textContent = `${namedCount} ${namedCount === 1 ? 'country' : 'countries'}`;
+
+    // Link
+    const link = document.getElementById('svcLink');
+    if (url) {
+        link.href = url;
+        link.textContent = `Watch on ${p.name} ↗`;
+        link.style.display = '';
+    } else {
+        link.style.display = 'none';
+    }
+
+    document.getElementById('svcBg').classList.add('open');
+}
+
+function closeSvcOverlay() {
+    document.getElementById('svcBg').classList.remove('open');
+}
+
+// ── Mobile menu ───────────────────────────────────────────────
+function closeMobileMenu() {
+    const menu = document.getElementById('mobileMenu');
+    const btn  = document.getElementById('hamburgerBtn');
+    if (!menu) return;
+    menu.classList.remove('open');
+    if (btn) btn.classList.remove('open');
+    document.body.style.overflow = '';
+}
+
+// ── Modal ─────────────────────────────────────────────────────
+function initModal() {
+    document.getElementById('modalClose').addEventListener('click', closeModal);
+    document.getElementById('modalBg').addEventListener('click', e => { if (e.target === e.currentTarget) closeModal(); });
+    document.getElementById('svcClose').addEventListener('click', closeSvcOverlay);
+    document.getElementById('svcBg').addEventListener('click', e => { if (e.target === e.currentTarget) closeSvcOverlay(); });
 }
 
 function closeModal() {
-    detailModal.classList.add('hidden');
-    document.body.classList.remove('modal-open');
-    modalBody.innerHTML = '';
+    document.getElementById('modalBg').classList.remove('open');
+    document.body.style.overflow = '';
 }
 
-function openSearchOverlay() {
-    searchOverlay.classList.remove('hidden');
-    document.body.classList.add('modal-open');
-    // Focus search input after animation
-    setTimeout(() => searchInput?.focus(), 100);
-}
+let _modalToken = 0;
 
-function closeSearchOverlay() {
-    searchOverlay.classList.add('hidden');
-    document.body.classList.remove('modal-open');
-    searchInput.value = '';
-}
+async function openModal(id, type, item) {
+    const myToken = ++_modalToken;
+    const bg = document.getElementById('modalBg');
+    bg.classList.add('open');
+    document.body.style.overflow = 'hidden';
 
-async function loadRecommended() {
-    try {
-        // Recommended Movies - English, mainstream, no animation
-        if (topMoviesContainer) {
-            topMoviesContainer.innerHTML = '';
-            const recommendedMovies = await fetchTMDB('/discover/movie', {
-                'sort_by': 'vote_average.desc',
-                'vote_count.gte': 1000,
-                'without_genres': '16', // Exclude Animation
-                'with_original_language': 'en',
-                'page': 1
-            });
-            for (const item of recommendedMovies.results.slice(0, 12).map(m => ({ ...m, media_type: 'movie' }))) {
-                await displayMediaCard(item, { container: topMoviesContainer, contextId: 'top-movies', isTrending: false });
-            }
-        }
+    document.getElementById('modalTitle').textContent    = item?.title || item?.name || '…';
+    document.getElementById('modalChips').innerHTML      = '';
+    document.getElementById('modalOverview').textContent = item?.overview || '';
+    document.getElementById('modalBanner').src           = item?.backdrop_path ? `${CONFIG.TMDB_IMG}/w1280${item.backdrop_path}` : '';
+    // Clear any previously injected Cast heading to avoid duplicates on re-open
+    document.querySelectorAll('#castSection .modal-section-title').forEach(el => el.remove());
+    document.getElementById('castRow').innerHTML         = '<div class="spin" style="margin:8px 0"></div>';
+    document.getElementById('streamingList').innerHTML   = '<div class="stream-loading"><div class="spin"></div><span>Checking availability…</span></div>';
+    const watchTitle = document.querySelector('.modal-watch .modal-section-title');
+    if (watchTitle) watchTitle.textContent = state.country ? 'Where to Watch' : 'Where to Watch — Worldwide';
+    document.getElementById('modalDetails').innerHTML    = '';
+    document.getElementById('similarSection').style.display = 'none';
+    document.getElementById('modalTmdbLink').href = `https://www.themoviedb.org/${type === 'tv' ? 'tv' : 'movie'}/${id}`;
 
-        // Recommended TV Shows - English, no animation, no documentaries
-        if (topShowsContainer) {
-            topShowsContainer.innerHTML = '';
-            const recommendedShows = await fetchTMDB('/discover/tv', {
-                'sort_by': 'vote_average.desc',
-                'vote_count.gte': 500,
-                'without_genres': '16,99', // Exclude Animation and Documentary
-                'with_original_language': 'en',
-                'page': 1
-            });
-            for (const item of recommendedShows.results.slice(0, 12).map(t => ({ ...t, media_type: 'tv' }))) {
-                await displayMediaCard(item, { container: topShowsContainer, contextId: 'top-shows', isTrending: false });
-            }
-        }
+    const [details, cast, similar] = await Promise.all([
+        getMediaDetails(id, type),
+        getMediaCast(id, type),
+        getMediaSimilar(id, type)
+    ]);
 
-        // Documentaries - English language documentaries
-        if (documentariesContainer) {
-            documentariesContainer.innerHTML = '';
-            const documentaries = await fetchTMDB('/discover/tv', {
-                'sort_by': 'vote_average.desc',
-                'vote_count.gte': 100,
-                'with_genres': '99', // Documentary genre
-                'with_original_language': 'en',
-                'page': 1
-            });
-            for (const item of documentaries.results.slice(0, 12).map(t => ({ ...t, media_type: 'tv' }))) {
-                await displayMediaCard(item, { container: documentariesContainer, contextId: 'documentaries', isTrending: false });
-            }
-        }
+    if (myToken !== _modalToken) return; // a newer modal opened — abandon this one
 
-        // Anime - Japanese animation
-        if (animeContainer) {
-            animeContainer.innerHTML = '';
-            const anime = await fetchTMDB('/discover/tv', {
-                'sort_by': 'popularity.desc',
-                'with_genres': '16', // Animation genre
-                'with_original_language': 'ja', // Japanese
-                'page': 1
-            });
-            for (const item of anime.results.slice(0, 12).map(t => ({ ...t, media_type: 'tv' }))) {
-                await displayMediaCard(item, { container: animeContainer, contextId: 'anime', isTrending: false });
-            }
-        }
+    const title = details.title || details.name || item?.title || item?.name || '';
+    const year  = (details.release_date || details.first_air_date || '').slice(0,4);
+    const lang  = LANGUAGE_NAMES[details.original_language] || details.original_language || '';
 
-        // International - Non-English content
-        if (internationalContainer) {
-            internationalContainer.innerHTML = '';
-            // Fetch from multiple popular non-English languages and combine
-            const languages = ['ko', 'ja', 'fr', 'es', 'de', 'it', 'zh', 'hi']; // Korean, Japanese, French, Spanish, German, Italian, Chinese, Hindi
-            const languageResults = await Promise.all(
-                languages.map(lang => 
-                    fetchTMDB('/discover/movie', {
-                        'sort_by': 'popularity.desc',
-                        'vote_count.gte': 200,
-                        'with_original_language': lang,
-                        'page': 1
-                    })
-                )
-            );
-            
-            // Combine results from all languages and sort by popularity
-            const allInternational = languageResults
-                .flatMap(result => result.results.slice(0, 3))
-                .sort((a, b) => b.popularity - a.popularity)
-                .slice(0, 12);
-            
-            for (const item of allInternational.map(m => ({ ...m, media_type: 'movie' }))) {
-                await displayMediaCard(item, { container: internationalContainer, contextId: 'international', isTrending: false });
-            }
-        }
+    const bannerSrc = details.backdrop_path
+        ? `${CONFIG.TMDB_IMG}/w1280${details.backdrop_path}`
+        : (item?.backdrop_path ? `${CONFIG.TMDB_IMG}/w1280${item.backdrop_path}` : '');
+    document.getElementById('modalBanner').src           = bannerSrc;
+    document.getElementById('modalTitle').textContent    = title;
+    document.getElementById('modalOverview').textContent = details.overview || item?.overview || 'No description available.';
 
-        // Kids & Family - Family-friendly content
-        if (kidsContainer) {
-            kidsContainer.innerHTML = '';
-            const kids = await fetchTMDB('/discover/movie', {
-                'sort_by': 'popularity.desc',
-                'certification_country': 'US',
-                'certification.lte': 'PG',
-                'with_genres': '16,10751', // Animation or Family genres
-                'with_original_language': 'en',
-                'page': 1
-            });
-            for (const item of kids.results.slice(0, 12).map(m => ({ ...m, media_type: 'movie' }))) {
-                await displayMediaCard(item, { container: kidsContainer, contextId: 'kids', isTrending: false });
-            }
-        }
+    const chips  = document.getElementById('modalChips');
+    const rating = details.vote_average ? details.vote_average.toFixed(1) : null;
+    if (rating && parseFloat(rating) > 0) chips.innerHTML += `<span class="modal-chip gold">★ ${rating}</span>`;
+    if (year)   chips.innerHTML += `<span class="modal-chip">${year}</span>`;
+    chips.innerHTML += `<span class="modal-chip blue">${type === 'tv' ? 'TV Show' : 'Movie'}</span>`;
 
-    } catch (e) {
-        console.error('Error loading recommended content:', e);
+    if (type === 'movie' && details.runtime) {
+        const h = Math.floor(details.runtime/60), m = details.runtime%60;
+        chips.innerHTML += `<span class="modal-chip">${h > 0 ? `${h}h ${m}m` : `${m}m`}</span>`;
+    } else if (type === 'tv' && details.number_of_seasons) {
+        const s = details.number_of_seasons, ep = details.number_of_episodes;
+        chips.innerHTML += `<span class="modal-chip">${s} Season${s>1?'s':''}${ep?`, ${ep} Eps`:''}</span>`;
     }
-}
 
-function returnToHome() {
-    // Hide search results
-    searchResultsSection.classList.add('hidden');
-    resultsContainer.innerHTML = '';
-    
-    // Show trending section
-    document.getElementById('trending').classList.remove('hidden');
+    const detailsEl = document.getElementById('modalDetails');
+    const addDetail = (label, val) => {
+        if (!val) return;
+        const d = document.createElement('div'); d.className = 'detail-row';
+        d.innerHTML = `<span class="detail-label">${label}</span><span class="detail-val" style="word-break:break-word;overflow-wrap:break-word">${val}</span>`;
+        detailsEl.appendChild(d);
+    };
+    addDetail('Language', lang);
+    addDetail('Status', details.status);
+    if (type === 'tv' && details.networks?.length) addDetail('Network', details.networks.map(n=>n.name).join(', '));
+    if (details.genres?.length) addDetail('Genres', details.genres.map(g=>g.name).join(', '));
+    if (type === 'movie' && details.budget > 0) addDetail('Budget', '$' + details.budget.toLocaleString());
 
-    // Show top lists
-    topListsSection?.classList.remove('hidden');
-    
-    // Clear search input
-    searchInput.value = '';
-    
-    // Scroll to top
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-}
-
-async function openDetailModal(item, meta = {}) {
-    if (!detailModal || !modalBody) return;
-    const title = meta.title || item.title || item.name;
-    const releaseDate = item.release_date || item.first_air_date;
-    const year = releaseDate ? releaseDate.split('-')[0] : '';
-    const posterPath = item.poster_path
-        ? `${CONFIG.TMDB_IMAGE_BASE}${item.poster_path}`
-        : 'https://via.placeholder.com/500x750?text=No+Poster';
-    
-    // Get detailed info for runtime/episodes
-    const details = await getMediaDetails(item.id, item.media_type);
-    let durationInfo = '';
-    if (item.media_type === 'movie' && details.runtime) {
-        const hours = Math.floor(details.runtime / 60);
-        const mins = details.runtime % 60;
-        durationInfo = hours > 0 ? `${hours}h ${mins}m` : `${mins}m`;
-    } else if (item.media_type === 'tv') {
-        const seasons = details.number_of_seasons;
-        const episodes = details.number_of_episodes;
-        if (seasons && episodes) {
-            durationInfo = `${seasons} Season${seasons > 1 ? 's' : ''}, ${episodes} Episode${episodes > 1 ? 's' : ''}`;
-        } else if (seasons) {
-            durationInfo = `${seasons} Season${seasons > 1 ? 's' : ''}`;
-        }
-    }
-    
-    // Get cast information
-    const cast = await getMediaCast(item.id, item.media_type);
-    const topCast = cast.slice(0, 8); // Get top 8 cast members
-    const castHTML = topCast.length > 0 ? `
-        <div class="detail-cast">
-            <div class="streaming-title">🎭 Cast</div>
-            <div class="cast-list">
-                ${topCast.map(actor => `
-                    <div class="cast-member">
-                        ${actor.profile_path ? 
-                            `<img src="${CONFIG.TMDB_IMAGE_BASE}${actor.profile_path}" alt="${actor.name}" class="cast-photo">` : 
-                            '<div class="cast-photo-placeholder">👤</div>'
-                        }
-                        <div class="cast-info">
-                            <div class="cast-name">${actor.name}</div>
-                            <div class="cast-character">${actor.character || 'Unknown Role'}</div>
-                        </div>
-                    </div>
-                `).join('')}
-            </div>
-        </div>
-    ` : '';
-
-    modalBody.innerHTML = `
-        <div class="detail-layout">
-            <div class="detail-poster">
-                <img src="${posterPath}" alt="${title}">
-            </div>
-            <div class="detail-meta">
-                <h2>${title}</h2>
-                <div class="meta-row">
-                    <span>📅 ${year || 'N/A'}</span>
-                    <span>🎬 ${item.media_type === 'tv' ? 'TV Show' : 'Movie'}</span>
-                    ${durationInfo ? `<span>⏱️ ${durationInfo}</span>` : ''}
-                    ${meta.isNew ? '<span class="pill pill-new">New</span>' : ''}
-                    ${meta.isTheatrical ? '<span class="pill pill-theater">In Theaters</span>' : ''}
-                </div>
-                <div class="detail-overview">${item.overview || 'No description available.'}</div>
-                <div class="detail-streaming" id="detail-streaming-${item.id}">
-                    <div class="streaming-title">🌍 Streaming availability</div>
-                    <div class="loading-streaming">Loading availability...</div>
-                </div>
-                ${castHTML}
-                <div class="detail-actions">
-                    <a class="btn-outline" href="https://www.themoviedb.org/${item.media_type}/${item.id}" target="_blank" rel="noopener noreferrer">View on TMDB</a>
-                </div>
-            </div>
-        </div>
-    `;
-
-    detailModal.classList.remove('hidden');
-    document.body.classList.add('modal-open');
-
-    const target = document.getElementById(`detail-streaming-${item.id}`);
-    const cached = streamingCache[item.id];
-    if (cached && cached.length) {
-        renderPlatforms(target, cached, COUNTRY_NAMES[(meta.selectedCountry || countryFilter.value || '').toLowerCase()] || '');
+    // Cast
+    const castSection = document.getElementById('castSection');
+    const castRow = document.getElementById('castRow');
+    castRow.innerHTML = '';
+    // Inject heading now that data has resolved (avoids heading showing above loading spinner)
+    const castHeading = document.createElement('h3');
+    castHeading.className = 'modal-section-title';
+    castHeading.textContent = 'Cast';
+    castSection.insertBefore(castHeading, castRow);
+    if (cast.length) {
+        cast.slice(0,10).forEach(actor => {
+            const rawRole = actor.character || '';
+            const role = rawRole.length > 22 ? rawRole.slice(0, 20) + '…' : rawRole;
+            const el = document.createElement('div'); el.className = 'cast-item';
+            el.innerHTML = actor.profile_path
+                ? `<div class="cast-avatar"><img src="${CONFIG.TMDB_IMG}/w185${actor.profile_path}" alt="${actor.name}" loading="lazy"></div><div class="cast-name">${actor.name}</div><div class="cast-role">${role}</div>`
+                : `<div class="cast-avatar-ph">👤</div><div class="cast-name">${actor.name}</div><div class="cast-role">${role}</div>`;
+            castRow.appendChild(el);
+        });
     } else {
-        const { platformsArray, selectedCountryLabel } = await buildPlatformArray(item, meta);
-        streamingCache[item.id] = platformsArray;
-        if (platformsArray && platformsArray.length) {
-            renderPlatforms(target, platformsArray, selectedCountryLabel);
+        castRow.innerHTML = '<span style="font-size:12px;color:var(--t3)">No cast data</span>';
+    }
+
+    // Similar — always exactly 2 full rows
+    if (similar.length) {
+        const sec  = document.getElementById('similarSection');
+        const grid = document.getElementById('similarGrid');
+        sec.style.display = '';
+        grid.innerHTML = '';
+
+        // Match fixed CSS column counts per breakpoint
+        const w = window.innerWidth;
+        const cols  = w <= 480 ? 3 : w <= 900 ? 4 : 5;
+        const count = Math.min(similar.length, cols * 2);
+
+        similar.slice(0, count).forEach(sim => {
+            const el = document.createElement('div'); el.className = 'sim-card';
+            el.innerHTML = `<img src="${sim.poster_path ? `${CONFIG.TMDB_IMG}/w185${sim.poster_path}` : ''}" alt="${sim.title||sim.name}" loading="lazy" style="${sim.poster_path ? '' : 'background:var(--surf3)'}"><div class="sim-name" style="word-break:break-word;overflow-wrap:break-word">${sim.title||sim.name}</div>`;
+            el.addEventListener('click', () => openModal(sim.id, type, sim));
+            grid.appendChild(el);
+        });
+    }
+
+    // Streaming
+    const stEl = document.getElementById('streamingList');
+    try {
+        const cached = state.streamCache.get(id);
+        const result = cached || await buildPlatformArray({ id, media_type: type }, { country: state.country });
+        if (!cached) state.streamCache.set(id, result);
+        const { platforms, countryLabel } = result;
+
+        if (!platforms.length) {
+            stEl.innerHTML = `<div class="stream-empty">Not available on subscription platforms${countryLabel ? ` in ${countryLabel}` : ''}.</div>`;
         } else {
-            target.innerHTML = `<div class="no-streaming">Not currently available on subscription platforms.</div>`;
+            stEl.innerHTML = '';
+            const list = document.createElement('div'); list.className = 'stream-list';
+            platforms.filter(p => p.name).forEach(p => {
+                const pill = document.createElement('div');
+                pill.className = 'stream-item';
+                pill.setAttribute('role', 'button');
+                pill.addEventListener('click', () => openSvcOverlay(p));
+
+                const abbr = p.name.slice(0, 3).toUpperCase();
+                if (p.logo) {
+                    const img = document.createElement('img');
+                    img.className = 'stream-pill-logo';
+                    img.src = `${CONFIG.TMDB_IMG}/w45${p.logo}`;
+                    img.alt = '';
+                    img.loading = 'lazy';
+                    img.onerror = function() {
+                        const sp = document.createElement('span');
+                        sp.className = 'stream-pill-abbr';
+                        sp.textContent = abbr;
+                        this.parentNode.replaceChild(sp, this);
+                    };
+                    pill.appendChild(img);
+                } else {
+                    const sp = document.createElement('span');
+                    sp.className = 'stream-pill-abbr';
+                    sp.textContent = abbr;
+                    pill.appendChild(sp);
+                }
+
+                const nameEl = document.createElement('span');
+                nameEl.className = 'stream-name';
+                nameEl.textContent = p.name;
+                pill.appendChild(nameEl);
+
+                // Show full country names; skip any code we can't resolve
+                if (p.countries && p.countries.length) {
+                    const names = p.countries
+                        .map(c => COUNTRY_NAMES[c.toLowerCase()])
+                        .filter(Boolean);
+                    if (names.length) {
+                        const top   = names.slice(0, 2);
+                        const extra = names.length > 2 ? ` +${names.length - 2}` : '';
+                        const codesEl = document.createElement('span');
+                        codesEl.className = 'stream-countries';
+                        codesEl.textContent = top.join(' · ') + extra;
+                        pill.appendChild(codesEl);
+                    }
+                }
+
+                list.appendChild(pill);
+            });
+            stEl.appendChild(list);
         }
+    } catch {
+        stEl.innerHTML = '<div class="stream-empty">Could not load streaming data.</div>';
     }
 }
 
-// Utility functions
-function showLoading(show) {
-    loadingElement.classList.toggle('hidden', !show);
+// ── Nav ───────────────────────────────────────────────────────
+function initNav() {
+    const nav = document.getElementById('nav');
+    const onScroll = () => nav.classList.toggle('solid', window.scrollY > 20);
+    window.addEventListener('scroll', onScroll, { passive: true });
+    onScroll();
+
+    // Keep search overlay + mobile drawer selects in sync
+    function applyCountry(code) {
+        state.country = code;
+        localStorage.setItem('cs_country', code);
+        state.streamCache.clear();
+        // Nav button label
+        const label = document.getElementById('navCountryCode');
+        if (label) label.textContent = code ? (COUNTRY_NAMES[code.toLowerCase()] || code.toUpperCase()) : 'All';
+        // Nav list active state
+        document.querySelectorAll('#navCountryList .nav-country-item').forEach(item => {
+            item.classList.toggle('active', item.dataset.code === code);
+        });
+        // Sync the two <select> elements (search overlay + mobile drawer)
+        ['countrySelect', 'mobileCountrySelect'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.value = code;
+        });
+    }
+
+    // Populate search overlay + mobile drawer selects
+    ['countrySelect', 'mobileCountrySelect'].forEach(id => {
+        const sel = document.getElementById(id);
+        if (!sel) return;
+        const allOpt = document.createElement('option');
+        allOpt.value = ''; allOpt.textContent = 'All Countries';
+        if (!state.country) allOpt.selected = true;
+        sel.appendChild(allOpt);
+        Object.entries(COUNTRY_NAMES).forEach(([code, name]) => {
+            const opt = document.createElement('option');
+            opt.value = code; opt.textContent = name;
+            if (code === state.country) opt.selected = true;
+            sel.appendChild(opt);
+        });
+        sel.addEventListener('change', e => applyCountry(e.target.value));
+    });
+
+    // Build the nav country list (custom buttons, no <select>)
+    const navCountryList = document.getElementById('navCountryList');
+    const navCountryDropdown = document.getElementById('navCountryDropdown');
+    const navCountryBtn = document.getElementById('navCountryBtn');
+    if (navCountryList && navCountryDropdown && navCountryBtn) {
+        const addItem = (code, name) => {
+            const btn = document.createElement('button');
+            btn.className = 'nav-country-item' + (code === state.country ? ' active' : '');
+            btn.dataset.code = code;
+            btn.textContent = name;
+            btn.addEventListener('click', () => {
+                applyCountry(code);
+                navCountryDropdown.classList.remove('open');
+                navCountryBtn.classList.remove('open');
+            });
+            navCountryList.appendChild(btn);
+        };
+        addItem('', 'All Countries');
+        Object.entries(COUNTRY_NAMES).forEach(([code, name]) => addItem(code, name));
+    }
+
+    // Nav country picker toggle + initial label
+    const navCountryCode = document.getElementById('navCountryCode');
+    if (navCountryCode) navCountryCode.textContent = state.country ? (COUNTRY_NAMES[state.country.toLowerCase()] || state.country.toUpperCase()) : 'All';
+    if (navCountryBtn && navCountryDropdown) {
+        navCountryBtn.addEventListener('click', e => {
+            e.stopPropagation();
+            const isOpen = navCountryDropdown.classList.toggle('open');
+            navCountryBtn.classList.toggle('open', isOpen);
+        });
+        document.addEventListener('click', e => {
+            if (!navCountryBtn.closest('.nav-country').contains(e.target)) {
+                navCountryDropdown.classList.remove('open');
+                navCountryBtn.classList.remove('open');
+            }
+        });
+    }
+
+    document.getElementById('homeLink').addEventListener('click', e => {
+        e.preventDefault(); navigatePage('home');
+    });
+
+    document.querySelectorAll('.nav-link[data-page]').forEach(link => {
+        link.addEventListener('click', e => {
+            e.preventDefault(); navigatePage(link.dataset.page);
+        });
+    });
+
+    // Hamburger / mobile drawer
+    const hamburgerBtn      = document.getElementById('hamburgerBtn');
+    const mobileMenu        = document.getElementById('mobileMenu');
+    const mobileMenuBackdrop = document.getElementById('mobileMenuBackdrop');
+    const mobileMenuClose   = document.getElementById('mobileMenuClose');
+
+    function openMobileMenu() {
+        mobileMenu.classList.add('open');
+        hamburgerBtn.classList.add('open');
+        document.body.style.overflow = 'hidden';
+    }
+
+    hamburgerBtn.addEventListener('click', openMobileMenu);
+    mobileMenuBackdrop.addEventListener('click', closeMobileMenu);
+    mobileMenuClose.addEventListener('click', closeMobileMenu);
+
+    document.querySelectorAll('.mobile-nav-link[data-page]').forEach(link => {
+        link.addEventListener('click', e => {
+            e.preventDefault();
+            closeMobileMenu();
+            navigatePage(link.dataset.page);
+        });
+    });
 }
 
-function showError(message) {
-    errorElement.textContent = message;
-    errorElement.classList.remove('hidden');
+// ── Init ──────────────────────────────────────────────────────
+function init() {
+    initNav();
+    initSearch();
+    initModal();
+    navigatePage('home');
 }
 
-function hideError() {
-    errorElement.classList.add('hidden');
-}
-
-// Initialize
-console.log('Movie Streaming Finder initialized');
-console.log('All API keys configured');
-console.log('Ready to search for movies and shows!');
-
-// Load initial content
-loadTrending();
-loadRecommended();
+init();
