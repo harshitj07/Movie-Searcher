@@ -842,7 +842,6 @@ async function openModal(id, type, item) {
     const bg = document.getElementById('modalBg');
     bg.classList.add('open');
     document.body.style.overflow = 'hidden';
-    bg.scrollTop = 0;
 
     document.getElementById('modalTitle').textContent    = item?.title || item?.name || '…';
     document.getElementById('modalChips').innerHTML      = '';
@@ -865,6 +864,9 @@ async function openModal(id, type, item) {
     ]);
 
     if (myToken !== _modalToken) return; // a newer modal opened — abandon this one
+
+    // Scroll to top now — modal has full content height so the reset lands at the banner
+    bg.scrollTop = 0;
 
     const title = details.title || details.name || item?.title || item?.name || '';
     const year  = (details.release_date || details.first_air_date || '').slice(0,4);
