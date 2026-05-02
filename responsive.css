@@ -122,19 +122,12 @@
     .chip           { padding: 5px 11px; font-size: 11px; }
     .filter-divider { display: none; }
 
-    /* ════════════════════════════════════════════════════════
-       MODAL — bottom sheet
-       Key overflow rules:
-         .modal-bg  → overflow-y: auto  (the actual scroll container)
-         .modal     → overflow-y: visible + overflow-x: clip
-                       This lets .modal-bg do the scrolling while
-                       overflow-x: clip trims the rounded top corners
-                       WITHOUT breaking the cast-row's horizontal scroll.
-       ════════════════════════════════════════════════════════ */
+    /* ── Modal — bottom sheet ── */
     .modal-bg {
         padding: 0;
         align-items: flex-end;
-        /* modal-bg is already overflow-y: auto from styles.css — good */
+        overflow-x: hidden;
+        overflow-y: hidden; /* modal handles its own scroll */
     }
 
     .modal {
@@ -143,22 +136,10 @@
         border-radius: var(--r2) var(--r2) 0 0;
         max-height: 92dvh;
         max-height: 92vh;
-        /* Modal handles its own scroll on mobile.
-           overflow-x:clip trims the rounded top corners.
-           overflow-y:auto gives the modal its own internal scroll container
-           so content beyond 92dvh is reachable by scrolling within the modal. */
-        overflow-x: clip;
+        overflow-x: hidden; /* clip rounded corners; hidden is safe since overflow-y:auto already creates BFC */
         overflow-y: auto;
         -webkit-overflow-scrolling: touch;
         transform-origin: bottom center;
-    }
-
-    /* The modal-bg is the scroll container on mobile.
-       Ensure it can't scroll horizontally. */
-    .modal-bg {
-        overflow-x: hidden;
-        overflow-y: auto;
-        -webkit-overflow-scrolling: touch;
     }
 
     /* ── Modal Banner ── */

@@ -842,6 +842,10 @@ async function openModal(id, type, item) {
     const bg = document.getElementById('modalBg');
     bg.classList.add('open');
     document.body.style.overflow = 'hidden';
+    // Reset scroll to top every time modal opens
+    const modalEl = document.getElementById('modal');
+    modalEl.scrollTop = 0;
+    bg.scrollTop = 0;
 
     document.getElementById('modalTitle').textContent    = item?.title || item?.name || '…';
     document.getElementById('modalChips').innerHTML      = '';
