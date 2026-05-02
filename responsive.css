@@ -9,11 +9,11 @@
      ≤480px   phone portrait
      ≤360px   very small phone (≤ iPhone SE 1st gen)
 
-   OVERFLOW RULES FOR THE BOTTOM-SHEET MODAL:
-     • .modal gets  overflow-y: auto  +  overflow-x: clip
-       (NOT overflow: hidden — that would kill the cast-row's
-        horizontal scroll on iOS. clip trims the rounded corners
-        but lets nested overflow-x: auto containers still work.)
+   BOTTOM-SHEET MODAL (≤680px):
+     • .modal-bg  scrolls (overflow-y: auto, align-items: flex-start)
+     • .modal     margin-top: auto — sticks to bottom when short,
+                  starts at top when taller than viewport so banner
+                  is always the first thing the user sees
    ================================================================ */
 
 
@@ -122,24 +122,35 @@
     .chip           { padding: 5px 11px; font-size: 11px; }
     .filter-divider { display: none; }
 
-    /* ── Modal — bottom sheet ── */
+    /* ── Modal — bottom sheet ──
+       Layout: modal-bg is the scroll container (overflow-y:auto).
+       modal uses margin-top:auto so:
+         • short modal  → pushed to bottom of viewport (classic bottom sheet)
+         • tall modal   → margin-top collapses to 0, modal starts at top,
+                          user scrolls DOWN through modal-bg to see all content.
+       This avoids the flex-end trap where a tall modal overflows UPWARD
+       and the banner becomes unreachable.
+    ── */
     .modal-bg {
         padding: 0;
-        align-items: flex-end;
+        align-items: flex-start;   /* content grows downward, scrollable */
         overflow-x: hidden;
-        overflow-y: hidden; /* modal handles its own scroll */
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
     }
 
     .modal {
         width: 100%;
         max-width: 100%;
         border-radius: var(--r2) var(--r2) 0 0;
-        max-height: 92dvh;
-        max-height: 92vh;
-        overflow-x: hidden; /* clip rounded corners; hidden is safe since overflow-y:auto already creates BFC */
-        overflow-y: auto;
-        -webkit-overflow-scrolling: touch;
+        margin-top: auto;          /* stick to bottom when short; 0 when tall */
+        overflow: visible;         /* modal-bg is the scroll container */
         transform-origin: bottom center;
+    }
+
+    /* Clip banner image to the modal's rounded top corners */
+    .modal-banner {
+        border-radius: var(--r2) var(--r2) 0 0;
     }
 
     /* ── Modal Banner ── */
@@ -198,13 +209,7 @@
     /* Sidebar: hide on small screens — key info lives in chips */
     .modal-col-side { display: none; }
 
-    /* ── Cast row — iOS-safe horizontal scroll ──
-       IMPORTANT: do NOT set overflow: hidden on any ancestor of .cast-row
-       or -webkit-overflow-scrolling: touch stops working on Safari/iOS.
-       The parent chain is: .modal (overflow-x:clip, overflow-y:visible)
-       → .modal-body → .modal-col-main → .modal-section → .cast-row.
-       overflow-x: clip on .modal does NOT create a scroll container,
-       so the inner overflow-x: auto on .cast-row is fully functional. */
+    /* ── Cast row — iOS horizontal scroll ── */
     .cast-row {
         -webkit-overflow-scrolling: touch;
         /* Ensure it still scrolls horizontally and doesn't clip */
